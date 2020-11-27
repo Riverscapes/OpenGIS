@@ -1,0 +1,17 @@
+version: '3'
+services:
+
+  # PostGIS Server
+  # ====================================
+  postgis_rstyler:
+    image: "postgis/postgis"
+    ports:
+      - "5432:5432"    
+    env_file:
+      - .env.database # configure with env variables
+    volumes:
+      # - database-data-pg:/var/lib/postgresql/data/ # persist data even if container shuts down
+      - ./initdb:/docker-entrypoint-initdb.d # persist data even if container shuts down
+
+# volumes:
+  # database-data-pg: # named volumes can be managed easier using docker-compose
