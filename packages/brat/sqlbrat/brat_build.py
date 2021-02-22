@@ -23,8 +23,8 @@ from rscommons import Logger, initGDALOGRErrors, RSLayer, RSProject, ModelConfig
 from rscommons.util import parse_metadata
 from rscommons.build_network import build_network
 from rscommons.database import create_database, SQLiteCon
+from rscommons.reach_geometry import reach_geometry
 from sqlbrat.utils.vegetation_summary import vegetation_summary
-from sqlbrat.utils.reach_geometry import reach_geometry
 from sqlbrat.utils.conflict_attributes import conflict_attributes
 from sqlbrat.__version__ import __version__
 
