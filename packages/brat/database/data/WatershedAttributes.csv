@@ -1,0 +1,6 @@
+AttributeID,AttributeName,ColumnName,Description
+1,Slope,iGeo_Slope,
+2,Max Elevation,iGeo_ElMax,
+3,Min Elevation,iGeo_ElMin,
+4,Drainage Area,iGeo_DA,
+5,Reach Length,iGeo_Len,

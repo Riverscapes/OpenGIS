@@ -101,11 +101,28 @@ def update_watersheds(curs, watershed_csv):
     curs.execute("""SELECT * FROM watersheds ORDER BY watershed_id""")
     watersheds = [row for row in curs.fetchall()]
 
-    # Validate the hydrologic equations. The following dictionary will be keyed by python exception concatenated to produce
-    # a unique string for each type of error for each equation. These will get printed to the screen for easy cut and paste
-    # into a GitHub issue for USU to resolve.
-    unique_errors = {}
-    for q in ['qlow', 'q2']:
+
+<< << << < HEAD
+== == == =
+  # watersheds = [{
+  #     'WatershedID': row['watershed_id'],
+  #     'Name': row['name'],
+  #     'EcoregionID': row['ecoregion_id'],
+  #     'MaxDrainage': row['max_drainage'],
+  #     'QLow': row['qlow'],
+  #     'Q2': row['q2'],
+  #     'Notes': row['notes'],
+  #     'MetaData': row['metadata'],
+  #     'AreaSqKm': row['area_sqkm'],
+  #     'States': row['states'].replace(',', '_') if row['states'] else None
+  # } for row in curs.fetchall()]
+>>>>>> > 163f85b... new postgres tables for watershed statistics
+
+  # Validate the hydrologic equations. The following dictionary will be keyed by python exception concatenated to produce
+  # a unique string for each type of error for each equation. These will get printed to the screen for easy cut and paste
+  # into a GitHub issue for USU to resolve.
+  unique_errors = {}
+   for q in ['qlow', 'q2']:
         progbar = ProgressBar(len(watersheds), 50, 'Verifying {} equations'.format(q))
         counter = 0
         for values in watersheds:
