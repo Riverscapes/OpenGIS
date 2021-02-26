@@ -193,6 +193,38 @@ CREATE TABLE HydroParams
     Conversion    REAL                NOT NULL DEFAULT (1),
     Definition    TEXT
 );
+
+CREATE TABLE WatershedAttributes
+(
+    AttributeID   INTEGER PRIMARY KEY NOT NULL,
+    AttributeName TEXT UNIQUE         NOT NULL,
+    ColumnName    TEXT,
+    Description   TEXT
+);
+
+CREATE TABLE Statistics
+(
+    StatisticID   INTEGER PRIMARY KEY NOT NULL,
+    StatisticName TEXT UNIQUE         NOT NULL,
+    Description   TEXT
+);
+
+
+CREATE TABLE WatershedStatistics
+(
+    WatershedID TEXT    NOT NULL,
+    AttributeID INTEGER NOT NULL,
+    StatisticID INTEGER NOT NULL,
+    Value       FLOAT   NOT NULL,
+
+    CONSTRAINT pk_watershed_statistics PRIMARY KEY (WatershedID, AttributeID, StatisticID),
+    CONSTRAINT fk_watershed_statistics_watershed_id FOREIGN KEY (WatershedID) REFERENCES watersheds (WatershedID),
+    CONSTRAINT fk_watershed_statistics_attribute_id FOREIGN KEY (AttributeID) REFERENCES WatershedAttributes (AttributeID),
+    CONSTRAINT fk_watershed_statistics_statistic_id FOREIGN KEY (StatisticID) REFERENCES Statistics (StatisticID)
+);
+CREATE INDEX fx_watershed_statistics_attribute_id ON WatershedStatistics (AttributeID);
+CREATE INDEX fx_watershed_statistics_statistic_id ON WatershedStatistics (StatisticID);
+
 CREATE INDEX FK_ReachVegetation_ReachID ON ReachVegetation (ReachID);
 CREATE INDEX FK_ReachVegetation_VegetationID ON ReachVegetation (VegetationID);
 CREATE INDEX FK_VegetationOverrides_EcoregionID ON VegetationOverrides (EcoregionID);
@@ -318,6 +350,21 @@ ORDER BY E.Name,
          TotalArea DESC;
 /* vwReachVegetationTypes(EpochID,Epoch,VegetationID,Name,Buffer,TotalArea) */
 
+
+CREATE VIEW vwWatershedStatistics AS
+SELECT w.WatershedID,
+       w.Name,
+       a.AttributeName,
+       a.ColumnName,
+       s.StatisticName,
+       ws.Value
+FROM watersheds w
+         INNER JOIN WatershedStatistics ws ON w.WatershedID = ws.WatershedID
+         INNER JOIN WatershedAttributes a ON ws.AttributeID = a.AttributeID
+         INNER JOIN Statistics s on ws.StatisticID = s.StatisticID;
+
+
+
 INSERT INTO gpkg_contents (table_name, data_type)
 VALUES ('Ecoregions', 'attributes');
 INSERT INTO gpkg_contents (table_name, data_type)
@@ -363,3 +410,5 @@ INSERT INTO gpkg_contents (table_name, data_type)
 VALUES ('vwVegetationSuitability', 'attributes');
 INSERT INTO gpkg_contents (table_name, data_type)
 VALUES ('vwReachVegetationTypes', 'attributes');
+
+INSERT INTO gpkg_contents (table_name, data_type) VALUES ('vwWatershedStatistics', 'attributes');

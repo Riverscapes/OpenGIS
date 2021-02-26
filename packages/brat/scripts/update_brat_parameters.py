@@ -103,6 +103,8 @@ def update_watersheds(curs, watershed_csv):
 
 
 << << << < HEAD
+
+<< << << < HEAD
 == == == =
   # watersheds = [{
   #     'WatershedID': row['watershed_id'],
@@ -123,6 +125,13 @@ def update_watersheds(curs, watershed_csv):
   # into a GitHub issue for USU to resolve.
   unique_errors = {}
    for q in ['qlow', 'q2']:
+== == == =
+    # Validate the hydrologic equations. The following dictionary will be keyed by python exception concatenated to produce
+    # a unique string for each type of error for each equation. These will get printed to the screen for easy cut and paste
+    # into a GitHub issue for USU to resolve.
+    unique_errors = {}
+    for q in ['qlow', 'q2']:
+>>>>>> > 541db6c... BRAT GeoPackage now contains watershed statistics tables
         progbar = ProgressBar(len(watersheds), 50, 'Verifying {} equations'.format(q))
         counter = 0
         for values in watersheds:
