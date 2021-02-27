@@ -63,9 +63,11 @@ class BratReport(RSReport):
         }
 
         row = curs.execute('''
-            SELECT WatershedID "Watershed ID", W.Name "Watershed Name", E.Name Ecoregion, CAST(AreaSqKm AS TEXT) "Area (Sqkm)", States
+            SELECT W.WatershedID "W.Watershed ID", W.Name "Watershed Name", E.Name Ecoregion, CAST(AreaSqKm AS TEXT) "Area (Sqkm)", States
             FROM Watersheds W
             INNER JOIN Ecoregions E ON W.EcoregionID = E.EcoregionID
+            INNER JOIN ReachAttributes RA ON w.WatershedID = RA.WatershedID
+            LIMIT 1
         ''').fetchone()
         values.update(row)
 
@@ -178,7 +180,7 @@ class BratReport(RSReport):
         conn = sqlite3.connect(self.database)
         curs = conn.cursor()
 
-        curs.execute('SELECT MaxDrainage, QLow, Q2 FROM Watersheds')
+        curs.execute('SELECT MaxDrainage, QLow, Q2 FROM Watersheds W INNER JOIN ReachAttributes RA ON W.WatershedID = RA.WatershedID LIMIT 1')
         row = curs.fetchone()
         RSReport.create_table_from_dict({
             'Max Draiange (sqkm)': row[0],
@@ -189,7 +191,10 @@ class BratReport(RSReport):
         RSReport.header(3, 'Hydrological Parameters', section)
         RSReport.create_table_from_sql(
             ['Parameter', 'Data Value', 'Data Units', 'Conversion Factor', 'Equation Value', 'Equation Units'],
-            'SELECT Parameter, Value, DataUnits, Conversion, ConvertedValue, EquationUnits FROM vwHydroParams',
+            """SELECT Parameter, Value, DataUnits, Conversion, ConvertedValue, EquationUnits
+                FROM vwHydroParams H
+                INNER JOIN
+                (SELECT W.WatershedID FROM Watersheds W INNER JOIN ReachAttributes R ON W.WatershedID = R.WatershedID LIMIT 1) Z ON H.WatershedID = Z.WatershedID""",
             self.database, section, attrib={'class': 'fullwidth'})
 
         variables = [
