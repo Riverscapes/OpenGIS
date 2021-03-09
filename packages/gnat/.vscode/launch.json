@@ -12,7 +12,7 @@
       "default": "17060304" // Really small HUC
       // "default": "17060103" // Asotin
     }
-  ],  
+  ],
   "configurations": [
     {
       "name": "Gnat",
@@ -65,8 +65,10 @@
         "{env:DATA_ROOT}/confinement/${input:HUC}", // output folder
         "BFwidth",
         "ValleyBottom",
-        "--meta", "Runner=VSCode",
-        "--reach_codes", "33400,46003,46006,46007,55800",
+        "--meta",
+        "Runner=VSCode",
+        "--reach_codes",
+        "33400,33600,33601,33603,46000,46003,46006,46007,55800",
         "--verbose",
         "--debug"
       ]
@@ -81,6 +83,108 @@
         "{env:DATA_ROOT}/confinement/${input:HUC}/project.rs.xml",
         "{env:DATA_ROOT}/rs_context/${input:HUC}/project.rs.xml,{env:DATA_ROOT}/vbet/${input:HUC}/project.rs.xml"
       ]
-    },        
+    },
+    {
+      "name": "Sinuosity",
+      "type": "python",
+      "request": "launch",
+      "module": "gnat.sinuosity",
+      "console": "integratedTerminal",
+      "args": [
+        "${input:HUC}",
+        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/network_intersected_300m",
+        "{env:DATA_ROOT}/vbet/${input:HUC}/outputs/vbet.gpkg/vbet_50",
+        "{env:DATA_ROOT}/gnat/${input:HUC}", // output folder
+        "--meta",
+        "Runner=VSCode",
+        "--reach_codes",
+        "33400,33600,33601,33603,46000,46003,46006,46007,55800",
+        "--verbose"
+      ]
+    },
+    {
+      "name": "Gradient",
+      "type": "python",
+      "request": "launch",
+      "module": "gnat.gradient",
+      "console": "integratedTerminal",
+      "args": [
+        "${input:HUC}",
+        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/network_intersected_300m",
+        "{env:DATA_ROOT}/vbet/${input:HUC}/outputs/vbet.gpkg/vbet_50",
+        "{env:DATA_ROOT}/gnat/${input:HUC}", // output folder
+        "--meta",
+        "Runner=VSCode",
+        "--reach_codes",
+        "33400,33600,33601,33603,46000,46003,46006,46007,55800",
+        "--verbose"
+      ]
+    },
+    {
+      "name": "Network Structure",
+      "type": "python",
+      "request": "launch",
+      "module": "gnat.network_structure",
+      "console": "integratedTerminal",
+      "args": [
+        "${input:HUC}",
+        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/network_intersected_300m",
+        "{env:DATA_ROOT}/vbet/${input:HUC}/outputs/vbet.gpkg/vbet_50",
+        "{env:DATA_ROOT}/gnat/${input:HUC}", // output folder
+        "--meta",
+        "Runner=VSCode",
+        "--reach_codes",
+        "33400,33600,33601,33603,46000,46003,46006,46007,55800",
+        "--verbose"
+      ]
+    },
+    {
+      "name": "Zonal Attributes - Polygons",
+      "type": "python",
+      "request": "launch",
+      "module": "gnat.zonal_attributes",
+      "console": "integratedTerminal",
+      "args": [
+        "${input:HUC}",
+        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/NHDPlusCatchments",
+        "{env:DATA_ROOT}/rs_context/${input:HUC}/ownership/ownership.gpkg/ownership",
+        "ADMIN_AGEN",
+        "{env:DATA_ROOT}/gnat/${input:HUC}/gnat_output.gpkg",
+        "--epsg",
+        "5070"
+      ]
+    },
+    {
+      "name": "Zonal Attributes - Lines",
+      "type": "python",
+      "request": "launch",
+      "module": "gnat.zonal_attributes",
+      "console": "integratedTerminal",
+      "args": [
+        "${input:HUC}",
+        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/NHDPlusCatchments",
+        "{env:DATA_ROOT}/gnat/hydrology.gpkg/network",
+        "FCode",
+        "{env:DATA_ROOT}/gnat/${input:HUC}/gnat_output.gpkg",
+        "--epsg",
+        "5070"
+      ]
+    },
+    {
+      "name": "Zonal Attributes - Points",
+      "type": "python",
+      "request": "launch",
+      "module": "gnat.zonal_attributes",
+      "console": "integratedTerminal",
+      "args": [
+        "${input:HUC}",
+        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/NHDPlusCatchments",
+        "{env:DATA_ROOT}/gnat/hydrology.gpkg/nodes",
+        "none",
+        "{env:DATA_ROOT}/gnat/${input:HUC}/gnat_output.gpkg",
+        "--epsg",
+        "5070"
+      ]
+    },
   ]
 }

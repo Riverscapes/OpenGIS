@@ -15,11 +15,16 @@ import glob
 import traceback
 import uuid
 import datetime
+import sqlite3
 from osgeo import ogr
 from osgeo import gdal
 
 from rscommons import Logger, RSProject, RSLayer, ModelConfig, dotenv, initGDALOGRErrors
 from rscommons.util import safe_makedirs, safe_remove_dir
+from rscommons import GeopackageLayer
+
+from gnat.gradient import gradient
+from gnat.sinuosity import planform_sinuosity
 
 from gnat.__version__ import __version__
 
@@ -62,6 +67,111 @@ def gnat(huc, output_folder):
 
     safe_makedirs(output_folder)
 
+    # Create Project
+    # Copy layers to outputs -  write attributes on these
+
+    # 1 Sinuosity Attributes
+
+    # Planform Sinuosity
+
+    # Channel Sinuosity
+
+    # Valley Bottom Sinuosity
+
+    # 2 Gradient Attributes
+
+    # Channel Gradient
+
+    # Valley Gradient
+
+
+def gnat_database(gnat_gpkg, in_layer, overwrite_existing=False):
+    """generates (if needed) and loads layer to gnat database
+
+    Args:
+        gnat_gpkg ([type]): [description]
+        in_layer ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+
+    if overwrite_existing:
+        safe_remove_dir(gnat_gpkg)
+
+    if not os.path.exists(gnat_gpkg):
+        with GeopackageLayer(in_layer) as lyr_inputs, \
+                GeopackageLayer(gnat_gpkg, layer_name='riverscapes', write=True) as lyr_outputs:
+
+            srs = lyr_inputs.ogr_layer.GetSpatialRef()
+
+            lyr_outputs.create_layer(ogr.wkbPolygon, spatial_ref=srs, options=['FID=riverscape_id'], fields={
+                'area_sqkm': ogr.OFTReal,
+                'river_style_id': ogr.OFTInteger
+            })
+
+            for feat, *_ in lyr_inputs.iterate_features("Copying Riverscapes Features"):
+                geom = feat.GetGeometryRef()
+                fid = feat.GetFID()
+                area = geom.GetArea()  # TODO calculate area as sqkm
+
+                out_feature = ogr.Feature(lyr_outputs.ogr_layer_def)
+                out_feature.SetGeometry(geom)
+                out_feature.SetFID(fid)
+                out_feature.SetField('area_sqkm', area)
+
+                lyr_outputs.ogr_layer.CreateFeature(out_feature)
+                out_feature = None
+
+        # log.info('Creating database schema at {0}'.format(database))
+        qry = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database', 'gnat_schema.sql'), 'r').read()
+        sqlite3.complete_statement(qry)
+        conn = sqlite3.connect(gnat_gpkg)
+        conn.execute('PRAGMA foreign_keys = ON;')
+        curs = conn.cursor()
+        curs.executescript(qry)
+
+    out_layer = os.path.join(gnat_gpkg, 'riverscapes')
+
+    return out_layer
+
+
+def write_gnat_attributes(gnat_gpkg, reaches, attribute, set_null_first=False):
+
+    if len(reaches) < 1:
+        return
+
+    conn = sqlite3.connect(gnat_gpkg)
+    conn.execute('pragma foreign_keys=ON')
+    curs = conn.cursor()
+
+    # Optionally clear all the values in the fields first
+    # if set_null_first is True:
+    #     [curs.execute(f'UPDATE {table_name} SET {field} = NULL') for field in fields]
+
+    # Get Attribute ID
+    sql = f'INSERT INTO attributes (attribute_name) VALUES(?)'
+    curs.execute(sql, [attribute])
+
+    sql = f'SELECT attribute_id from attributes where attribute_name = ?'
+    attribute_id = curs.execute(sql, [attribute]).fetchone()
+
+    sql = f'INSERT INTO riverscape_attributes (riverscape_id, attribute_id, value) VALUES(?,?,?)'
+    curs.executemany(sql, [(reach, attribute_id[0], value) for reach, value in reaches.items()])
+    conn.commit()
+
+    # results = []
+    # for reachid, values in reaches.items():
+    #     results.append([values[field] if field in values else None for field in fields])
+    #     results[-1].append(reachid)
+
+    # sql = 'UPDATE {} SET {} WHERE ReachID = ?'.format(table_name, ','.join(['{}=?'.format(field) for field in fields]))
+    # curs.executemany(sql, results)
+    # conn.commit()
+
+    # if summarize is True:
+    #     [summarize_reaches(database, field) for field in fields]
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -69,8 +179,15 @@ def main():
         # epilog="This is an epilog"
     )
     parser.add_argument('huc', help='HUC identifier', type=str)
+    parser.add_argument('flowlines', help="NHD Flowlines (.gpkg/layer_name)", type=str)
+    parser.add_argument('valley_bottom', help='valley bottom polygon (.gpkg/layer_name)', type=str)
+    parser.add_argument('valley_bottom_centerline', help='valley bottom centerline (.gpkg/layer_name)', type=str)
+    parser.add_argument('dem', help='DEM raster path', type=str)
     parser.add_argument('output_folder', help='Output folder', type=str)
+    parser.add_argument('--reach_codes', help='Comma delimited reach codes (FCode) to retain when filtering features. Omitting this option retains all features.', type=str)
+    parser.add_argument('--meta', help='riverscapes project metadata as comma separated key=value pairs', type=str)
     parser.add_argument('--verbose', help='(optional) a little extra logging ', action='store_true', default=False)
+    parser.add_argument('--debug', help="(optional) save intermediate outputs for debugging", action='store_true', default=False)
 
     args = dotenv.parse_args_env(parser)
 
@@ -80,7 +197,7 @@ def main():
     log.title('GNAT For HUC: {}'.format(args.huc))
 
     try:
-        gnat(args.hu, args.output_folder)
+        gnat(args.huc, args.output_folder)
 
     except Exception as e:
         log.error(e)
