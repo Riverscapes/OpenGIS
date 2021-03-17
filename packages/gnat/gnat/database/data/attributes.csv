@@ -1,0 +1,4 @@
+attribute_id,attribute_name,machine_name
+1,Bankfull Mean,BFWidth_WEIGHTED-MEAN
+2,Convergent Total,convergent_SUM
+3,Divergent Total,divergent_SUM

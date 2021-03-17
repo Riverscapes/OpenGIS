@@ -22,6 +22,7 @@ from osgeo import gdal
 from rscommons import Logger, RSProject, RSLayer, ModelConfig, dotenv, initGDALOGRErrors
 from rscommons.util import safe_makedirs, safe_remove_dir
 from rscommons import GeopackageLayer
+from rscommons.database import load_lookup_data
 
 from gnat.gradient import gradient
 from gnat.sinuosity import planform_sinuosity
@@ -96,6 +97,8 @@ def gnat_database(gnat_gpkg, in_layer, overwrite_existing=False):
         [type]: [description]
     """
 
+    schema_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database')
+
     if overwrite_existing:
         safe_remove_dir(gnat_gpkg)
 
@@ -124,19 +127,21 @@ def gnat_database(gnat_gpkg, in_layer, overwrite_existing=False):
                 out_feature = None
 
         # log.info('Creating database schema at {0}'.format(database))
-        qry = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database', 'gnat_schema.sql'), 'r').read()
+        qry = open(os.path.join(schema_path, 'gnat_schema.sql'), 'r').read()
         sqlite3.complete_statement(qry)
         conn = sqlite3.connect(gnat_gpkg)
         conn.execute('PRAGMA foreign_keys = ON;')
         curs = conn.cursor()
         curs.executescript(qry)
 
+        load_lookup_data(gnat_gpkg, schema_path)
+
     out_layer = os.path.join(gnat_gpkg, 'riverscapes')
 
     return out_layer
 
 
-def write_gnat_attributes(gnat_gpkg, reaches, attribute, set_null_first=False):
+def write_gnat_attributes(gnat_gpkg, reaches, attributes, set_null_first=False):
 
     if len(reaches) < 1:
         return
@@ -149,28 +154,16 @@ def write_gnat_attributes(gnat_gpkg, reaches, attribute, set_null_first=False):
     # if set_null_first is True:
     #     [curs.execute(f'UPDATE {table_name} SET {field} = NULL') for field in fields]
 
-    # Get Attribute ID
-    sql = f'INSERT INTO attributes (attribute_name) VALUES(?)'
-    curs.execute(sql, [attribute])
+    for attribute in attributes:
 
-    sql = f'SELECT attribute_id from attributes where attribute_name = ?'
-    attribute_id = curs.execute(sql, [attribute]).fetchone()
+        sql = f'SELECT attribute_id from attributes where machine_name = ?'
+        attribute_id = curs.execute(sql, [attribute]).fetchone()[0]
 
-    sql = f'INSERT INTO riverscape_attributes (riverscape_id, attribute_id, value) VALUES(?,?,?)'
-    curs.executemany(sql, [(reach, attribute_id[0], value) for reach, value in reaches.items()])
-    conn.commit()
+        fieldname, summary = attribute.split('_')
 
-    # results = []
-    # for reachid, values in reaches.items():
-    #     results.append([values[field] if field in values else None for field in fields])
-    #     results[-1].append(reachid)
-
-    # sql = 'UPDATE {} SET {} WHERE ReachID = ?'.format(table_name, ','.join(['{}=?'.format(field) for field in fields]))
-    # curs.executemany(sql, results)
-    # conn.commit()
-
-    # if summarize is True:
-    #     [summarize_reaches(database, field) for field in fields]
+        sql = f'INSERT INTO riverscape_attributes (riverscape_id, attribute_id, value) VALUES(?,?,?)'
+        curs.executemany(sql, [(reach, attribute_id, value[fieldname][summary]) for reach, value in reaches.items() if fieldname in value.keys()])
+        conn.commit()
 
 
 def main():
