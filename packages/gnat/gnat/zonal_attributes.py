@@ -22,7 +22,7 @@ geom_attribute_names = {'COUNT': VectorBase.POINT_TYPES,
                         'AREA': VectorBase.POLY_TYPES}
 
 
-def zonal_intersect(polygon_zones: Path, polygons: Path, summary_fields: list = None, epsg=None) -> dict:
+def zonal_intersect(polygon_zones: Path, attribute_features: Path, summary_fields: list = None, epsg: int = None) -> dict:
     """Find zonal attributes
 
         Points: count for each class in each field
@@ -30,16 +30,17 @@ def zonal_intersect(polygon_zones: Path, polygons: Path, summary_fields: list = 
         Polygons: Area for each class in each field
 
     Args:
-        polygon_zones (Path): [description]
-        polygons (Path): [description]
-        summary_fields (list, optional): [description]. Defaults to [].
+        polygon_zones (Path): Zonal polygons to summarize attributes
+        attribute_features (Path): features with attributes
+        summary_fields (list, optional): list of fields to summarize. Defaults to None.
+        epsg (int, optional): epsg to transform featurs
 
     Returns:
-        dict: dictionary of geom ids with attributes
+        dict: dictionary of geom ids with attribute counts, lengths or areas
     """
 
     with GeopackageLayer(os.path.dirname(polygon_zones), layer_name=os.path.basename(polygon_zones)) as lyr_zonal, \
-            GeopackageLayer(os.path.dirname(polygons), layer_name=os.path.basename(polygons)) as lyr_attributes:
+            GeopackageLayer(os.path.dirname(attribute_features), layer_name=os.path.basename(attribute_features)) as lyr_attributes:
 
         # Initialize outputs
         outputs = {}
@@ -90,7 +91,16 @@ def zonal_intersect(polygon_zones: Path, polygons: Path, summary_fields: list = 
     return outputs
 
 
-def summerize_attributes(reaches, fields=[]):
+def summerize_attributes(reaches: dict, fields: list = None):
+    """summerize tabulated zonal counts
+
+    Args:
+        reaches (dict): [description]
+        fields (list, optional): [description]. Defaults to None.
+
+    Returns:
+        dict: summarized attributes
+    """
 
     outputs = {}
 
@@ -103,24 +113,9 @@ def summerize_attributes(reaches, fields=[]):
                 output_values = {}
                 output_values['MAX'] = max(field_values, key=field_values.get)
                 output_values['MIN'] = min(field_values, key=field_values.get)
-                output[field] = output_values
-        outputs[reach_id] = output
-
-    return outputs
-
-
-def summarize_attributes_numeric(reaches, fields=[]):
-
-    outputs = {}
-
-    for reach_id, reach in reaches.items():
-        output = {}
-        for field, field_values in reach.items():
-            if field in [*geom_attribute_names.keys(), 'ZONE_AREA']:
-                continue
-            if fields is None or field in fields:
-                output_values = {}
-                output_values['WEIGHTED-MEAN'] = sum([k * v for k, v in field_values.items()]) / sum(field_values.values())
+                output_values['SUM'] = sum(field_values.values())
+                if [type(k) for k in field_values.keys()][0] in [int, float]:
+                    output_values['WEIGHTED-MEAN'] = sum([k * v for k, v in field_values.items()]) / sum(field_values.values())
                 output[field] = output_values
         outputs[reach_id] = output
 
@@ -132,20 +127,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Zonal Summary Tool')
 
     parser.add_argument('huc', help='HUC identifier', type=str)
-    parser.add_argument('zonal_polygons', help="NHD Flowlines (.shp, .gpkg/layer_name)", type=str)
-    parser.add_argument('attribute_features', help='valley bottom or other polygon representing confining boundary (.shp, .gpkg/layer_name)', type=str)
-    parser.add_argument('summary_fields', type=str)
+    parser.add_argument('zonal_polygons', help="polygon representing confining boundary (.shp, .gpkg/layer_name)", type=str)
+    parser.add_argument('attribute_features', help='feature class with attributes to generate ', type=str)
+    parser.add_argument('metrics', type=str)
     parser.add_argument('output_gpkg', type=str)
     parser.add_argument('--epsg', type=int, default=None)
 
     args = dotenv.parse_args_env(parser)
-    summary_fields = args.summary_fields.split(',')
+    metrics = args.metrics.split(',')
+    summary_fields = [m.split('_')[0] for m in metrics]
 
     zones = gnat_database(args.output_gpkg, args.zonal_polygons, True)
 
-    zonal_tabulation = zonal_intersect(zones, args.attribute_features, ['BFWidth', 'FCode'], args.epsg)
-    categorical = summerize_attributes(zonal_tabulation, summary_fields)
-    numerical = summarize_attributes_numeric(zonal_tabulation, ['BFWidth'])
+    zonal_tabulation = zonal_intersect(zones, args.attribute_features, summary_fields, args.epsg)
+    summarized_outputs = summerize_attributes(zonal_tabulation, summary_fields)
 
-    # TODO update write to table
-    # write_gnat_attributes(args.output_gpkg, numerical, "primary catchment ownership")
+    write_gnat_attributes(args.output_gpkg, summarized_outputs, metrics)
