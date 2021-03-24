@@ -1,0 +1,6 @@
+method_id,method_name
+1,COPY
+2,MIN
+3,MAX
+4,WEIGHTED-MEAN
+5,SUM

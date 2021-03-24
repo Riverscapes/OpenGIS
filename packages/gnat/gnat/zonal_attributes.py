@@ -12,7 +12,7 @@ import argparse
 
 import ogr
 
-from gnat.gnat import gnat_database, write_gnat_attributes
+#from gnat.gnat import gnat_database, write_gnat_attributes
 from rscommons import GeopackageLayer, get_shp_or_gpkg, dotenv, Logger, ProgressBar, VectorBase
 
 Path = typing.Union[str, bytes, os.PathLike]
@@ -59,6 +59,8 @@ def zonal_intersect(polygon_zones: Path, attribute_features: Path, summary_field
                 geom_zonal.Transform(transform_zonal)
 
             intersected_attributes = {geom_attribue_name: 0, "ZONE_AREA": geom_zonal.GetArea()}
+            if geom_type in VectorBase.LINE_TYPES:
+                intersected_attributes['SL_DIST'] = 0.0
 
             # Gather Intersected feats and thier attributes
             for feat_attribute, *_ in lyr_attributes.iterate_features():
@@ -75,6 +77,16 @@ def zonal_intersect(polygon_zones: Path, attribute_features: Path, summary_field
                         value = intersected_geom.Area()
                     if intersected_geom.GetGeometryType() in VectorBase.LINE_TYPES:
                         value = intersected_geom.Length()
+                        if intersected_geom.GetPointCount() >= 2:
+                            pt_start = intersected_geom.GetPoint_2D(0)
+                            g_start = ogr.Geometry(ogr.wkbPoint)
+                            g_start.AddPoint(pt_start[0], pt_start[1])
+                            pt_end = intersected_geom.GetPoint_2D(intersected_geom.GetPointCount() - 1)
+                            g_end = ogr.Geometry(ogr.wkbPoint)
+                            g_end.AddPoint(pt_end[0], pt_end[1])
+                            intersected_attributes['SL_DIST'] = intersected_attributes['SL_DIST'] + g_start.Distance(g_end)
+                        else:
+                            print('test')
 
                     if summary_fields:
                         for field in summary_fields:
@@ -107,7 +119,7 @@ def summerize_attributes(reaches: dict, fields: list = None):
     for reach_id, reach in reaches.items():
         output = {}
         for field, field_values in reach.items():
-            if field in [*geom_attribute_names.keys(), 'ZONE_AREA']:
+            if field in [*geom_attribute_names.keys(), 'ZONE_AREA', 'SL_DIST']:
                 continue
             if fields is None or field in fields:
                 output_values = {}
@@ -134,12 +146,12 @@ if __name__ == "__main__":
     parser.add_argument('--epsg', type=int, default=None)
 
     args = dotenv.parse_args_env(parser)
-    metrics = args.metrics.split(',')
-    summary_fields = [m.split('_')[0] for m in metrics]
+    # metrics = args.metrics.split(',')
+    # summary_fields = [m.split('_')[0] for m in metrics]
 
-    zones = gnat_database(args.output_gpkg, args.zonal_polygons, True)
+    # zones = gnat_database(args.output_gpkg, args.zonal_polygons, True)
 
-    zonal_tabulation = zonal_intersect(zones, args.attribute_features, summary_fields, args.epsg)
-    summarized_outputs = summerize_attributes(zonal_tabulation, summary_fields)
+    # zonal_tabulation = zonal_intersect(zones, args.attribute_features, summary_fields, args.epsg)
+    # summarized_outputs = summerize_attributes(zonal_tabulation, summary_fields)
 
-    write_gnat_attributes(args.output_gpkg, summarized_outputs, metrics)
+    # write_gnat_attributes(args.output_gpkg, summarized_outputs, metrics)

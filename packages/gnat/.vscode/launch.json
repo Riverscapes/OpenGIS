@@ -18,14 +18,16 @@
       "name": "Gnat",
       "type": "python",
       "request": "launch",
-      "module": "gnat.gnat",
+      "module": "gnat.gnat_rs",
       "console": "integratedTerminal",
       // Add NATIONAL_PROJECT, INPUTS_FOLDER, DOWNLOAD_FOLDER to your .env file
       "args": [
         "${input:HUC}",
-        // "--temp_folder", "{env:DOWNLOAD_FOLDER}/tmp",
-        // "--force",
-        // "--parallel",
+        "{env:DATA_ROOT}/vbet/${input:HUC}/outputs/vbet.gpkg/vbet_50_sections",
+        "{env:DATA_ROOT}/gnat/${input:HUC}",
+        "flowlines={env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/network,segmented_flowlines={env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/network_intersected_300m",
+        "--epsg", "5070",
+        //"--meta",
         "--verbose"
       ]
     },

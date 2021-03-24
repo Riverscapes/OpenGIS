@@ -25,20 +25,26 @@ from rscommons import Logger, ProgressBar, dotenv
 from rscommons import GeopackageLayer
 from rscommons import database
 
-from gnat.gnat import gnat_database, write_gnat_attributes
-
 Path = str
 
 
-def network_structure_attributes(line_network, out_gnat_database, reach_id_field=None):
+def build_network_structure(line_network: Path, out_gpkg: Path, reach_id_field: str = None):
+    """generate network based geometry features
+
+    Args:
+        line_network (Path): full flowline network
+        out_gpkg (Path): geopackage to save outputs
+        reach_id_field (str, optional): custom fid field. Defaults to None.
+
+    Returns:
+        [type]: [description]
+    """
 
     log = Logger("GNAT Network Structure")
     log.info(f'Starting network structure')
 
-    # gnat_database(out_gnat_database, add_layers=[line_network])
-
     with GeopackageLayer(line_network, write=True) as flowlines_lyr, \
-            GeopackageLayer(out_gnat_database, "NetworkNodes", delete_dataset=True, write=True) as lyr_nodes:
+            GeopackageLayer(out_gpkg, "NetworkNodes", delete_dataset=False, write=True) as lyr_nodes:
 
         # Get the reach nodes
         reaches = {}
@@ -127,7 +133,7 @@ def network_structure_attributes(line_network, out_gnat_database, reach_id_field
             lyr_nodes.ogr_layer.CreateFeature(out_feature)
             out_feature = None
 
-    return
+    return os.path.join(out_gpkg, "NetworkNodes")
 
 
 if __name__ == "__main__":
@@ -144,4 +150,4 @@ if __name__ == "__main__":
 
     out_gpkg = os.path.join(args.output_folder, "gnat.gpkg")
 
-    network_structure_attributes(args.in_network, out_gpkg)
+    build_network_structure(args.in_network, out_gpkg)

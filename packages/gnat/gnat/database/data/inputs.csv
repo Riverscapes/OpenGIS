@@ -1,0 +1,8 @@
+input_id,input_name,is_intermeidate
+1,flowlines,0
+2,segmented_flowlines,0
+3,dem,0
+4,flow_regime_polygons,0
+5,eco_region_polygons,0
+6,network_nodes,1
+7,PlanformSinuoisty,1

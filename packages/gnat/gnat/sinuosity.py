@@ -26,7 +26,7 @@ from rscommons import GeopackageLayer
 Path = str
 
 
-def planform_sinuosity(line_network: Path, out_field_name: str = 'PlanformSinuosity'):
+def segment_sinuosity(line_network: Path, out_network: Path, out_field_name: str = 'PlanformSinuosity'):
     """Calculate planform sinuosity (segment length / segment endpoint distance) on non projected network
 
     Args:
@@ -34,17 +34,25 @@ def planform_sinuosity(line_network: Path, out_field_name: str = 'PlanformSinuos
         out_field_name (str, optional): new or overwritten output field to store sinuosity values. Defaults to 'PlanformSinuosity'.
     """
 
-    log = Logger("GNAT Planform Sinuosity")
-    log.info(f'Starting sinuosity')
+    log = Logger("GNAT Segment Sinuosity")
+    log.info(f'Starting segment sinuosity')
 
-    with GeopackageLayer(line_network, write=True) as flowlines_lyr:
+    with GeopackageLayer(line_network, write=True) as flowlines_lyr, \
+            GeopackageLayer(out_network, write=True) as out_lyr:
+
+        srs = flowlines_lyr.ogr_layer.GetSpatialRef()
+        out_lyr.create_layer(ogr.wkbLineString, spatial_ref=srs,
+                             fields={'GNAT_LengthKM': ogr.OFTReal,
+                                     'GNAT_SegDistKM': ogr.OFTReal,
+                                     out_field_name: ogr.OFTReal
+                                     })
 
         # Field management
-        for field in [out_field_name, 'GNAT_LengthKM', 'GNAT_SegDistKM']:
-            ix_field = flowlines_lyr.ogr_layer.GetLayerDefn().GetFieldIndex(field)
-            if ix_field != 0:
-                flowlines_lyr.ogr_layer.DeleteField(ix_field)
-            flowlines_lyr.ogr_layer.CreateField(ogr.FieldDefn(field, ogr.OFTReal))
+        # for field in [out_field_name, 'GNAT_LengthKM', 'GNAT_SegDistKM']:
+        #     ix_field = flowlines_lyr.ogr_layer.GetLayerDefn().GetFieldIndex(field)
+        #     if ix_field != 0:
+        #         flowlines_lyr.ogr_layer.DeleteField(ix_field)
+        #     flowlines_lyr.ogr_layer.CreateField(ogr.FieldDefn(field, ogr.OFTReal))
 
         # Calculate Planform Sinuosity for each feature
         for feat, _counter, _progbar in flowlines_lyr.iterate_features("Calculating Sinuosity"):
@@ -69,10 +77,13 @@ def planform_sinuosity(line_network: Path, out_field_name: str = 'PlanformSinuos
             sinuosity = length / segment_dist
 
             # Write outupt
-            feat.SetField(out_field_name, sinuosity)
-            feat.SetField('GNAT_LengthKM', length)
-            feat.SetField('GNAT_SegDistKM', segment_dist)
-            flowlines_lyr.ogr_layer.SetFeature(feat)
+            out_feat = ogr.Feature(out_lyr.ogr_layer_def)
+            out_feat.SetFID(feat.GetFID())
+            out_feat.SetGeometry(geom)
+            out_feat.SetField(out_field_name, sinuosity)
+            out_feat.SetField('GNAT_LengthKM', length)
+            out_feat.SetField('GNAT_SegDistKM', segment_dist)
+            out_lyr.ogr_layer.CreateFeature(out_feat)
 
 
 def haversine(lon1, lat1, lon2, lat2):
