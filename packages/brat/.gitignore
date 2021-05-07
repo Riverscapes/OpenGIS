@@ -3,6 +3,7 @@
 _site/
 credentials.json
 token.pickle
+riverscapes_parameters.pickle
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

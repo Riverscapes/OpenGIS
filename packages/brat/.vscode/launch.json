@@ -80,6 +80,13 @@
       ]
     },
     {
+      "name": "Riverscapes Parameter CLI",
+      "type": "python",
+      "request": "launch",
+      "module": "scripts.riverscapes_parameter_cli",
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Write BRAT report",
       "type": "python",
       "request": "launch",
