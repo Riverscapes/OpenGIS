@@ -23,14 +23,15 @@
       "console": "integratedTerminal",
       "args": [
         "${input:HUC}",
-        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/network_intersected_300m",
-        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/NHDArea.shp",
-        "{env:DATA_ROOT}/rs_context/${input:HUC}/topography/slope.tif",
-        "{env:DATA_ROOT}/rs_context/${input:HUC}/topography/hand.tif",
-        "{env:DATA_ROOT}/rs_context/${input:HUC}/topography/dem_hillshade.tif",
+        "KW_TESTING",
+        "FLOWLINES={env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/hydrology.gpkg/network,FLOW_AREA={env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/NHDArea.shp,SLOPE_RASTER={env:DATA_ROOT}/rs_context/${input:HUC}/topography/slope.tif,DEM={env:DATA_ROOT}/rs_context/${input:HUC}/topography/dem.tif,HILLSHADE={env:DATA_ROOT}/rs_context/${input:HUC}/topography/dem_hillshade.tif,CATCHMENTS={env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/NHDPlusCatchment.shp",
         "{env:DATA_ROOT}/vbet/${input:HUC}",
-        "--reach_codes", "33400,46003,46006,46007,55800",
-        "--meta", "Runner=VSCode",
+        "{env:DATA_ROOT}/rs_context/${input:HUC}/hydrology/nhd_data.sqlite/NHDPlusFlowlineVAA",
+        "--reach_codes",
+        "33400,46003,46006,46007,55800",
+        "--create_centerline",
+        "--meta",
+        "Runner=VSCode",
         "--verbose",
         "--debug"
       ]
@@ -47,7 +48,8 @@
         "{env:DATA_ROOT}/rs_context/${input:HUC}/transportation/roads.shp",
         "{env:DATA_ROOT}/rs_context/${input:HUC}/transportation/railways.shp",
         "{env:DATA_ROOT}/vbet/${input:HUC}/connectivity",
-        "--debug_gpkg", "{env:DATA_ROOT}/vbet/${input:HUC}/connectivity/debug.gpkg",
+        "--debug_gpkg",
+        "{env:DATA_ROOT}/vbet/${input:HUC}/connectivity/debug.gpkg",
         "--verbose"
       ]
     },
@@ -69,8 +71,11 @@
       "module": "vbet.vbet_report",
       "console": "integratedTerminal",
       "args": [
+        "KW_TESTING",
+        "{env:DATA_ROOT}/vbet/${input:HUC}/inputs/vbet_inputs.gpkg",
+        "{env:DATA_ROOT}/vbet/${input:HUC}/outputs/vbet.gpkg",
         "{env:DATA_ROOT}/vbet/${input:HUC}/project.rs.xml",
-        "{env:DATA_ROOT}/vbet/${input:HUC}/vbet_report.html"
+        "{env:DATA_ROOT}/vbet/${input:HUC}/outputs/vbet_report.html"
       ]
     },    
     {
@@ -82,6 +87,48 @@
       ],
       "request": "launch",
       "console": "integratedTerminal"
-    }    
+    },
+    {
+      "name": "Floodplain Connectivity",
+      "type": "python",
+      "request": "launch",
+      "module": "vbet.floodplain_connectivity",
+      "console": "integratedTerminal",
+    },
+    {
+      "name": "Transformation Curve",
+      "type": "python",
+      "request": "launch",
+      "module": "vbet.scripts.transformation_curves",
+      "console": "integratedTerminal",
+    },
+    {
+      "name": "Sanitize Testing",
+      "type": "python",
+      "request": "launch",
+      "module": "vbet.vbet_outputs",
+      "console": "integratedTerminal"
+    },
+    { 
+      "name": "HAND Testing",
+      "type": "python",
+      "request": "launch",
+      "module": "scripts.hand",
+      "console": "integratedTerminal"
+    },
+    { 
+      "name": "Newtork",
+      "type": "python",
+      "request": "launch",
+      "module": "vbet.vbet_network",
+      "console": "integratedTerminal"
+    },
+    { 
+      "name": "Vbet centerline",
+      "type": "python",
+      "request": "launch",
+      "module": "vbet.vbet_centerline",
+      "console": "integratedTerminal"
+    },
   ]
 }

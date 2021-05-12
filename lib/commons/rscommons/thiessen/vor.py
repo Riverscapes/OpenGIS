@@ -2,6 +2,7 @@
 NARVoronoi Module
 """
 # pylint: disable=no-member
+from typing import List
 import numpy as np
 from scipy.spatial.qhull import QhullError
 from scipy.spatial import Voronoi
@@ -9,7 +10,6 @@ from shapely.geometry import Point, MultiPoint, LineString, Polygon, MultiPolygo
 from shapely.ops import unary_union, linemerge
 from rscommons import Logger, ProgressBar
 from rscommons.thiessen.shapes import RiverPoint
-from typing import List
 
 
 class NARVoronoi:

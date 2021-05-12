@@ -16,11 +16,12 @@ import json
 import traceback
 import uuid
 import datetime
+import time
 from typing import Dict
 from osgeo import ogr
 
 from rscommons import Logger, RSProject, RSLayer, ModelConfig, dotenv, initGDALOGRErrors, Timer
-from rscommons.util import safe_makedirs, safe_remove_dir, parse_metadata
+from rscommons.util import safe_makedirs, safe_remove_dir, parse_metadata, pretty_duration
 from rscommons.clean_nhd_data import clean_nhd_data
 from rscommons.clean_ntd_data import clean_ntd_data
 from rscommons.raster_warp import raster_warp, raster_vrt_stitch
@@ -110,6 +111,7 @@ def rs_context(huc, existing_veg, historic_veg, ownership, fair_market, ecoregio
     :param meta (Dict[str,str]): dictionary of riverscapes metadata key: value pairs
     :return:
     """
+    rsc_timer = time.time()
     log = Logger("RS Context")
     log.info('Starting RSContext v.{}'.format(cfg.version))
 
@@ -340,6 +342,10 @@ def rs_context(huc, existing_veg, historic_veg, ownership, fair_market, ecoregio
 
     report_path = os.path.join(project.project_dir, LayerTypes['REPORT'].rel_path)
     project.add_report(realization, LayerTypes['REPORT'], replace=True)
+
+    ellapsed_time = time.time() - rsc_timer
+    project.add_metadata({"ProcTimeS": "{:.2f}".format(ellapsed_time)})
+    project.add_metadata({"ProcTimeHuman": pretty_duration(ellapsed_time)})
 
     report = RSContextReport(report_path, project, output_folder)
     report.write()

@@ -152,14 +152,22 @@ class MemoryMonitor:
 def ThreadRun(callback, memlogfile: str, *args, **kwargs):
     log = Logger('Debug')
     memmon = MemoryMonitor(memlogfile, 1)
+    result = None
+    max_obj = None
     with ThreadPoolExecutor() as executor:
         mem_thread = executor.submit(memmon.measure_usage)
         try:
             fn_thread = executor.submit(callback, *args, **kwargs)
             result = fn_thread.result()
+        except Exception as e:
+            log.error("Error executing code: {}".format(e))
         finally:
             memmon.keep_measuring = False
             max_obj = mem_thread.result()
             log.debug('MaxStats: {}'.format(max_obj))
-    memmon.write_plot(os.path.splitext(memlogfile)[0] + '.png')
+    try:
+        memmon.write_plot(os.path.splitext(memlogfile)[0] + '.png')
+    except Exception as e:
+        log.error('Error Writing memory plot: {}'.format(e))
+
     return result, max_obj.toString()

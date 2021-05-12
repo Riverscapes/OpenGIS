@@ -65,6 +65,7 @@ vbet $HUC \
   --reach_codes 33400,46003,46006,46007,55800 \
   --create_centerline \
   --meta "Runner=Cybercastor" \
+  --debug \
   --verbose
 if [[ $? != 0 ]]; then return 1; fi
 
@@ -94,7 +95,6 @@ echo "<<PROCESS COMPLETE>>"
 try || {
   # Emergency Cleanup
   cd /usr/local/
-  rm -fr $TASK_DIR
-  echo "<<RS CONTEXT PROCESS ENDED WITH AN ERROR>>"
+  echo "<<VBET PROCESS ENDED WITH AN ERROR>>"
   exit 1
 }

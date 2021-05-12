@@ -87,14 +87,13 @@ try() {
   ##########################################################################################
 
   vbet $HUC \
-    $RS_CONTEXT_DIR/hydrology/hydrology.gpkg/network_intersected_300m \
-    $RS_CONTEXT_DIR/hydrology/NHDArea.shp \
-    $RS_CONTEXT_DIR/topography/slope.tif \
-    $RS_CONTEXT_DIR/topography/hand.tif \
-    $RS_CONTEXT_DIR/topography/dem_hillshade.tif \
+    "KW_TESTING" \
+    FLOWLINES=$RS_CONTEXT_DIR/hydrology/hydrology.gpkg/network,FLOW_AREA=$RS_CONTEXT_DIR/hydrology/NHDArea.shp,SLOPE_RASTER=$RS_CONTEXT_DIR/topography/slope.tif,DEM=$RS_CONTEXT_DIR/topography/dem.tif,HILLSHADE=$RS_CONTEXT_DIR/topography/dem_hillshade.tif,CATCHMENTS=$RS_CONTEXT_DIR/hydrology/NHDPlusCatchment.shp \
     $VBET_DIR \
-    --meta "Runner=Cybercastor" \
+    $RS_CONTEXT_DIR/hydrology/nhd_data.sqlite/NHDPlusFlowlineVAA \
     --reach_codes 33400,46003,46006,46007,55800 \
+    --create_centerline \
+    --meta "Runner=Cybercastor" \
     --verbose
   if [[ $? != 0 ]]; then return 1; fi
 

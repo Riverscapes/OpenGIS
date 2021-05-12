@@ -1,0 +1,5 @@
+input_id, name, description
+1,Slope,slope (degrees)
+2,HAND,Height above nearest drainage (metres)
+3,Channel,Distance from flow network (metres)
+4,Flow Areas,Distance from flow areas (metres)

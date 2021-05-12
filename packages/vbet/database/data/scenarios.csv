@@ -1,0 +1,3 @@
+scenario_id,scenario_name,machine_code,scenario_description
+1,KW testing scenario,KW_TESTING,initial testing scenario for vbet
+2,Original Default Scenario,ORIGINAL_DEFAULT,Original Default Scenario

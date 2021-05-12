@@ -84,13 +84,12 @@ rm -fr $RSC_TASK_OUTPUT/climate
 ##########################################################################################
 
 vbet $HUC \
-  $RSC_TASK_OUTPUT/hydrology/hydrology.gpkg/network_intersected_300m \
-  $RSC_TASK_OUTPUT/hydrology/NHDArea.shp \
-  $RSC_TASK_OUTPUT/topography/slope.tif \
-  $RSC_TASK_OUTPUT/topography/hand.tif \
-  $RSC_TASK_OUTPUT/topography/dem_hillshade.tif \
+  "KW_TESTING" \
+  FLOWLINES=$RSC_TASK_OUTPUT/hydrology/hydrology.gpkg/network,FLOW_AREA=$RSC_TASK_OUTPUT/hydrology/NHDArea.shp,SLOPE_RASTER=$RSC_TASK_OUTPUT/topography/slope.tif,DEM=$RSC_TASK_OUTPUT/topography/dem.tif,HILLSHADE=$RSC_TASK_OUTPUT/topography/dem_hillshade.tif,CATCHMENTS=$RSC_TASK_OUTPUT/hydrology/NHDPlusCatchment.shp \
   $VBET_TASK_OUTPUT \
+  $RSC_TASK_OUTPUT/hydrology/nhd_data.sqlite/NHDPlusFlowlineVAA \
   --reach_codes 33400,46003,46006,46007,55800 \
+  --create_centerline \
   --meta "Runner=Cybercastor" \
   --verbose
 if [[ $? != 0 ]]; then return 1; fi

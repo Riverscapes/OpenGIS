@@ -170,17 +170,16 @@ def load_lookup_data(db_path, csv_dir):
     log = Logger('Database')
 
     # Load lookup table data into the database
-    for dir_name in ['data', os.path.join('data', 'intersect')]:
-        dir_search = os.path.join(csv_dir, dir_name, '*.csv')
-        for file_name in glob.glob(dir_search):
-            table_name = os.path.splitext(os.path.basename(file_name))[0]
-            with open(os.path.join(dir_name, file_name), mode='r') as csvfile:
-                d = csv.DictReader(csvfile)
-                sql = 'INSERT OR REPLACE INTO {0} ({1}) VALUES ({2})'.format(table_name, ','.join(d.fieldnames), ','.join('?' * len(d.fieldnames)))
+    dir_search = os.path.join(csv_dir, 'data', '**','*.csv')
+    for file_name in glob.glob(dir_search, recursive=True):
+        table_name = os.path.splitext(os.path.basename(file_name))[0]
+        with open(file_name, mode='r') as csvfile:
+            d = csv.DictReader(csvfile)
+            sql = 'INSERT OR REPLACE INTO {0} ({1}) VALUES ({2})'.format(table_name, ','.join(d.fieldnames), ','.join('?' * len(d.fieldnames)))
 
-                to_db = [[i[col] for col in d.fieldnames] for i in d]
-                curs.executemany(sql, to_db)
-                log.info('{:,} records loaded into {} lookup data table'.format(curs.rowcount, table_name))
+            to_db = [[i[col] for col in d.fieldnames] for i in d]
+            curs.executemany(sql, to_db)
+            log.info('{:,} records loaded into {} lookup data table'.format(curs.rowcount, table_name))
 
     conn.commit()
 

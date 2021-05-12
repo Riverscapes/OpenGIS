@@ -1,5 +1,6 @@
 import os
 import shutil
+import ogr
 from osgeo import gdal
 import rasterio
 import numpy as np
@@ -256,3 +257,70 @@ def raster_clean(in_raster_path: str, out_raster_path: str, buffer_pixels=1):
                 progbar.finish()
 
         log.info('Cleaning finished')
+
+
+def rasterize_attribute(in_lyr_path, out_raster_path, template_path, attribute_field):
+    """Rasterizing an input 
+
+    Args:
+        in_lyr_path ([type]): [description]
+        out_raster_ ([type]): [description]
+        template_path ([type]): [description]
+    """
+    log = Logger('VBETRasterize')
+    ds_path, lyr_path = VectorBase.path_sorter(in_lyr_path)
+
+    progbar = ProgressBar(100, 50, "Rasterizing ")
+
+    # with rasterio.open(template_path) as raster:
+    #     t = raster.transform
+    #     raster_bounds = raster.bounds
+    #     ncol = raster.width
+    #     nrow = raster.height
+
+    raster_template = gdal.Open(template_path)
+    # Fetch number of rows and columns
+    ncol = raster_template.RasterXSize
+    nrow = raster_template.RasterYSize
+    # Fetch projection and extent
+    proj = raster_template.GetProjectionRef()
+    ext = raster_template.GetGeoTransform()
+    raster_template = None
+
+    def poly_progress(progress, _msg, _data):
+        progbar.update(int(progress * 100))
+
+    # Rasterize the features (roads, rail etc) and calculate a raster of Euclidean distance from these features
+    progbar.update(0)
+
+    src_driver = ogr.GetDriverByName('GPKG')
+    src_ds = src_driver.Open(ds_path)
+    src_lyr = src_ds.GetLayer(lyr_path)
+
+    # Rasterize the polygon to a temporary file
+    with TempRaster('vbet_rasterize_attribute') as tempfile:
+        log.debug('Temporary file: {}'.format(tempfile.filepath))
+
+        driver = gdal.GetDriverByName('GTiff')
+        out_raster = driver.Create(tempfile.filepath, ncol, nrow, 1, gdal.GDT_Int16)
+        out_raster.SetProjection(proj)
+        out_raster.SetGeoTransform(ext)
+        options = ['ALL_TOUCHED=TRUE', f'ATTRIBUTE={attribute_field}']
+        gdal.RasterizeLayer(out_raster, [1], src_lyr, options=options)
+
+        # gdal.Rasterize(
+        #     tempfile.filepath,
+        #     ds_path,
+        #     layers=[lyr_path],
+        #     xRes=t[0], yRes=t[4],
+        #     attribute=attribute_field, outputType=gdal.GDT_Int32,
+        #     creationOptions=['COMPRESS=LZW'],
+        #     # outputBounds --- assigned output bounds: [minx, miny, maxx, maxy]
+        #     outputBounds=[raster_bounds.left, raster_bounds.bottom, raster_bounds.right, raster_bounds.top],
+        #     callback=poly_progress
+        # )
+        out_raster = None
+        progbar.finish()
+
+        # Now mask the output correctly
+        mask_rasters_nodata(tempfile.filepath, template_path, out_raster_path)

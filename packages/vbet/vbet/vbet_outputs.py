@@ -56,7 +56,11 @@ def sanitize(name: str, in_path: str, out_path: str, buff_dist: float, select_fe
     with GeopackageLayer(out_path, write=True) as out_lyr, \
             TempGeopackage('sanitize_temp') as tempgpkg, \
             GeopackageLayer(in_path) as in_lyr:
-        out_lyr.create_layer(ogr.wkbPolygon, spatial_ref=in_lyr.spatial_ref)
+
+        #out_lyr.create_layer(ogr.wkbPolygon, spatial_ref=in_lyr.spatial_ref)
+        out_lyr.create_layer_from_ref(in_lyr)
+        out_layer_defn = out_lyr.ogr_layer.GetLayerDefn()
+        field_count = out_layer_defn.GetFieldCount()
 
         pts = 0
         square_buff = buff_dist * buff_dist
@@ -69,7 +73,7 @@ def sanitize(name: str, in_path: str, out_path: str, buff_dist: float, select_fe
         with GeopackageLayer(tempgpkg.filepath, "sanitize_{}".format(str(uuid4())), write=True, delete_dataset=True) as tmp_lyr, \
                 GeopackageLayer(select_features) as lyr_select_features:
 
-            tmp_lyr.create_layer_from_ref(in_lyr)
+            # tmp_lyr.create_layer_from_ref(in_lyr)
 
             def geom_validity_fix(geom_in):
                 f_geom = geom_in
@@ -84,22 +88,44 @@ def sanitize(name: str, in_path: str, out_path: str, buff_dist: float, select_fe
             # Only keep features intersected with network
             tmp_lyr.create_layer_from_ref(in_lyr)
 
+            tmp_lyr.ogr_layer.StartTransaction()
+
             for candidate_feat, _c2, _p1 in in_lyr.iterate_features("Finding interesected features"):
                 candidate_geom = candidate_feat.GetGeometryRef()
+                candidate_geom = geom_validity_fix(candidate_geom)
+
+                reach_attributes = {}
+                for n in range(field_count):
+                    field = out_layer_defn.GetFieldDefn(n)
+                    value = candidate_feat.GetField(field.name)
+                    reach_attributes[field.name] = value
 
                 for select_feat, _counter, _progbar in lyr_select_features.iterate_features():
                     select_geom = select_feat.GetGeometryRef()
+                    select_geom = geom_validity_fix(select_geom)
                     if select_geom.Intersects(candidate_geom):
                         feat = ogr.Feature(tmp_lyr.ogr_layer_def)
                         feat.SetGeometry(candidate_geom)
+                        for field, value in reach_attributes.items():
+                            feat.SetField(field, value)
                         tmp_lyr.ogr_layer.CreateFeature(feat)
                         feat = None
                         break
 
+            tmp_lyr.ogr_layer.CommitTransaction()
+            out_lyr.ogr_layer.StartTransaction()
             # Second loop is about filtering bad areas and simplifying
             for in_feat, _counter, _progbar in tmp_lyr.iterate_features("Filtering out non-relevant shapes for {}".format(name)):
+
+                reach_attributes = {}
+                for n in range(field_count):
+                    field = out_layer_defn.GetFieldDefn(n)
+                    value = in_feat.GetField(field.name)
+                    reach_attributes[field.name] = value
+
                 fid = in_feat.GetFID()
                 geom = in_feat.GetGeometryRef()
+                geom = geom_validity_fix(geom)
 
                 area = geom.Area()
                 pts += geom.GetBoundary().GetPointCount()
@@ -122,11 +148,14 @@ def sanitize(name: str, in_path: str, out_path: str, buff_dist: float, select_fe
                     out_feature = ogr.Feature(out_lyr.ogr_layer_def)
                     out_feature.SetGeometry(f_geom)
                     out_feature.SetFID(fid)
+                    for field, value in reach_attributes.items():
+                        out_feature.SetField(field, value)
+
                     out_lyr.ogr_layer.CreateFeature(out_feature)
 
                     in_pts += pts
                     out_pts += f_geom.GetBoundary().GetPointCount()
                 else:
                     log.warning('Invalid GEOM with fid: {} for layer {}'.format(fid, name))
-
+            out_lyr.ogr_layer.CommitTransaction()
         log.info('Writing to disk for layer {}'.format(name))

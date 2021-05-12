@@ -83,3 +83,17 @@ def histogram(values, bins, file_path):
         os.makedirs(os.path.dirname(file_path))
 
     plt.savefig(file_path)
+
+def line(x_values, y_values, xlabel, ylabel, chart_title, file_path):
+
+    plt.clf()
+    plt.plot(x_values, y_values)
+    
+    plt.title = chart_title
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+
+    if not os.path.isdir(os.path.dirname(file_path)):
+        os.makedirs(os.path.dirname(file_path))
+
+    plt.savefig(file_path)
