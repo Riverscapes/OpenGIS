@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>OpenGIS Tools</title>
+
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="/assets/css/style.css">
+      <link rel="stylesheet" href="/assets/css/custom.css">
+
+      <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/favicons/apple-icon-57x57.png">
+      <link rel="apple-touch-icon" sizes="60x60" href="/assets/images/favicons/apple-icon-60x60.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/favicons/apple-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="76x76" href="/assets/images/favicons/apple-icon-76x76.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/favicons/apple-icon-114x114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="/assets/images/favicons/apple-icon-120x120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/favicons/apple-icon-144x144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/favicons/apple-icon-152x152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-icon-180x180.png">
+      <link rel="icon" type="image/png" sizes="192x192"  href="/assets/images/favicons/android-icon-192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="/assets/images/favicons/favicon-96x96.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
+      <link rel="manifest" href="/assets/images/favicons/manifest.json">
+      <meta name="msapplication-TileColor" content="#ffffff">
+      <meta name="msapplication-TileImage" content="/assets/images/favicons/ms-icon-144x144.png">
+      <meta name="theme-color" content="#ffffff">
+      <link rel="shortcut icon" href="/assets/images/favicons/favicon.ico" />
+
+      <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+  </head>
+
+  <body>
+
+  <header>
+    <div id="topbarnav"></div>
+    <div id="headcallout" class="text-center callout large">
+      
+
+
+<h4 class="subheader show-for-medium"><a href="/">OpenGIS Tools</a></h4>   
+<h1>Developing</h1>
+    
+
+    </div>
+  </header>
+
+  <div id="inner-wrapper">
+    <div id="inner" class="row">
+      <div id="main" class="large-8 columns large-push-4">
+        <section><p>This repo makes extensive use of a single <code class="language-plaintext highlighter-rouge">virtualenv</code> and <code class="language-plaintext highlighter-rouge">pip install -e</code></p>
+
+<h2 id="linux--osx">Linux / OSX</h2>
+
+<p>To get things going run <code class="language-plaintext highlighter-rouge">./scripts/bootstrap.sh</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./scripts/bootstrap.sh
+</code></pre></div></div>
+
+<p>This will:</p>
+
+<ol>
+  <li>Create a <code class="language-plaintext highlighter-rouge">virtualenv</code> that all the packages in this repo can use</li>
+  <li>Install some trick prerequisites like GDAL, Cython, Scipy and rasterio etc.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">pip install -e</code> on each repo to link them up.</li>
+</ol>
+
+<h2 id="windows">Windows</h2>
+
+<ol>
+  <li>Install python 3.8.3</li>
+  <li>Install C++ build tools: <a href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">https://visualstudio.microsoft.com/visual-cpp-build-tools/</a></li>
+  <li>Install git bash and make sure VSCode has this set as its default terminal</li>
+  <li>Install <code class="language-plaintext highlighter-rouge">virtualenv</code> in the root using <code class="language-plaintext highlighter-rouge">pip install virtualenv</code></li>
+</ol>
+
+<p>Go and get the wheel files.
+<a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/">https://www.lfd.uci.edu/~gohlke/pythonlibs/</a></p>
+
+<p>You’ll need these. Actual file names may vary if you have a slightly different version of python <code class="language-plaintext highlighter-rouge">cp38 ==&gt; python 3.8</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Cython-0.29.21-cp38-cp38-win_amd64.whl
+GDAL-3.1.2-cp38-cp38-win_amd64.whl
+rasterio-1.1.5-cp38-cp38-win_amd64.whl
+Rtree-0.9.4-cp38-cp38-win_amd64.whl
+Shapely‑1.7.1‑cp38‑cp38‑win_amd64.whl
+</code></pre></div></div>
+
+<p>once you’ve downloaded these make sure to pip install them OUTSIDE of any virtualenv (so just pip install in terminal)</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>Cython-0.29.21-cp38-cp38-win_amd64.whl
+</code></pre></div></div>
+
+<p>Now run <code class="language-plaintext highlighter-rouge">./scripts/bootstrap-win.sh</code> from the root of this repo using git bash</p>
+
+<h2 id="vscode-settings">VSCode Settings</h2>
+
+<p>Minor note: for windows machines the pythonpath should be:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"python.pythonPath": "../../.venv/scripts/python.exe",
+</code></pre></div></div>
+
+<p><strong><em>CAVEAT:</em></strong> You will need to select a new interpreter for windows and this means that your <code class="language-plaintext highlighter-rouge">settings.json</code> files will constantly show up as having been changed. Please don’t commit these files to git as they will change the environment for everyone else.</p>
+
+<p>Microsoft is looking into platform-specific settings for VSCode but these haven’t been implemented yet so we’re ahead of the curve.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"python.pythonPath"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../../.venv/bin/python"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"[python]"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"editor.tabSize"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"editor.formatOnSave"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"python.linting.enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"python.linting.lintOnSave"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"python.linting.pycodestyleEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"python.linting.pylintEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"python.linting.pycodestyleArgs"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"--ignore=E501"</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"python.formatting.autopep8Args"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"--ignore=E501"</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"python.terminal.activateEnvironment"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"python.autoComplete.showAdvancedMembers"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"files.exclude"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"**/*.egg-info"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"files.watcherExclude"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"**/*.egg-info/**"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"search.exclude"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"**/*.egg-info"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+</section>
+      </div>
+      <div id="sidebar" class="large-4 columns large-pull-8">
+          
+	
+	<div class="title-bar">
+		<div class="title-bar-title"><i class="fa fa-file-text"></i> Page Contents</div>		
+	</div>
+	<div id="toc"></div>
+	
+
+
+<div class="title-bar">
+	<div class="title-bar-title"><i class="fa fa-sitemap"></i> Site Contents
+		<div id="menuCtls" class="button-group tiny show-for-medium">
+				<span id="expand" class="button primary fa fa-plus has-tip top" data-tooltip title="Expand all items" aria-haspopup="true" data-disable-hover="false" ></span>
+				<span id="contract" class="button primary fa fa-minus has-tip top" data-tooltip title="Contract all items" aria-haspopup="true" data-disable-hover="false" ></span>
+			</div>	
+	</div>
+</div>
+ <div id="sidenav">
+			<ul id='HTMLOnlyNav'>							<li><a href='/assets/images/favicons/manifest.json'></a></li>							<li><a href='/assets/js/nav.js'>Test</a></li>							<li><a href='/developing/Docker.html'>Running with Docker</a></li>							<li><a href='/developing/Release_Checklist.html'>Release Checklist</a></li>							<li><a href='/developing/'>Developing</a></li>							<li><a href='/'>Home</a></li>		</ul>	
+</div>
+
+<!-- Sidebar is where the extended sidepanel stuff like mailchimp forms go -->
+<!-- USe this file in your theme to include a mailchimp sidebar or whatever -->
+        </div>
+    </div>
+  </div>
+
+
+    <footer id="footer" class="row">
+<div id="rightslogo">
+    <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+        <img src="/assets/images/cc-watermarks-riverscapes_orig.png" alt="Picture">
+    </a>
+</div>
+</footer>
+    
+
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/motion-ui.min.js"></script>
+    <script src="/assets/js/foundation.min.js"></script>
+    <script src="/assets/js/toc.js"></script>
+    <script src="/assets/js/nav.js"></script>
+    <script src="/assets/js/app.js"></script>
+
+  </body>
+
+</html>

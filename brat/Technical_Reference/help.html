@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>BRAT</title>
+
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="/brat/assets/css/style.css">
+      <link rel="stylesheet" href="/brat/assets/css/custom.css">
+
+      <link rel="apple-touch-icon" sizes="57x57" href="/brat/assets/images/favicons/apple-icon-57x57.png">
+      <link rel="apple-touch-icon" sizes="60x60" href="/brat/assets/images/favicons/apple-icon-60x60.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="/brat/assets/images/favicons/apple-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="76x76" href="/brat/assets/images/favicons/apple-icon-76x76.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="/brat/assets/images/favicons/apple-icon-114x114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="/brat/assets/images/favicons/apple-icon-120x120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="/brat/assets/images/favicons/apple-icon-144x144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/brat/assets/images/favicons/apple-icon-152x152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/brat/assets/images/favicons/apple-icon-180x180.png">
+      <link rel="icon" type="image/png" sizes="192x192"  href="/brat/assets/images/favicons/android-icon-192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="/brat/assets/images/favicons/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="/brat/assets/images/favicons/favicon-96x96.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/brat/assets/images/favicons/favicon-16x16.png">
+      <link rel="manifest" href="/brat/assets/images/favicons/manifest.json">
+      <meta name="msapplication-TileColor" content="#ffffff">
+      <meta name="msapplication-TileImage" content="/brat/assets/images/favicons/ms-icon-144x144.png">
+      <meta name="theme-color" content="#ffffff">
+      <link rel="shortcut icon" href="/brat/assets/images/favicons/favicon.ico" />
+
+      <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+  </head>
+
+  <body>
+
+  <header>
+    <div id="topbarnav"></div>
+    <div id="headcallout" class="text-center callout large">
+      
+<h4 class="subheader show-for-medium"><a href="/brat/">BRAT</a></h4>   
+<h1>Help</h1>
+    
+
+
+    </div>
+  </header>
+
+  <div id="inner-wrapper">
+    <div id="inner" class="row">
+      <div id="main" class="large-8 columns large-push-4">
+        <section><p>A dump of some helpful materials</p>
+
+<h2 id="shapely">Shapely</h2>
+
+<p>The Shapely buffer operation wasn’t working until I installed it using pip but omitting the binaries.
+We were also getting an assertion failure during intersect opterations. Again, omitting binaries
+solved this problem.</p>
+
+<p>See this <a href="https://github.com/Toblerity/Shapely/issues/260">post</a></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip uninstall shapely
+pip <span class="nb">install</span> <span class="nt">--no-binary</span> :all: shapely
+</code></pre></div></div>
+
+<h2 id="convert-esri-grid-to-geotiif">Convert ESRI GRID to GeoTIIF</h2>
+
+<p>Use this command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdalwarp <span class="nt">-t_srs</span> <span class="s1">'EPSG:26911'</span> ./US_140EVT/us_140evt/ ./landfire.tif
+</code></pre></div></div>
+
+<h2 id="clip-national-landfire-to-a-huc8">Clip National Landfire to a HUC8</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdalwarp us_140evt ./test.tif <span class="nt">-cutline</span> ../../17040209/Shape/WBDHU8.shp <span class="nt">-crop_to_cutline</span> <span class="nt">-t_srs</span> <span class="s2">"EPSG:26911"</span>
+</code></pre></div></div>
+
+<h2 id="pygeoprocessing">PyGeoprocessing</h2>
+
+<p>Installed using terminal using the command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>pygeoprocessing <span class="nt">--no-deps</span> <span class="nt">--no-binary</span> :all:
+</code></pre></div></div>
+
+<p>Also needed to install cython using PyCharm package manager and
+spatial indexing package using as per <a href="https://github.com/gboeing/osmnx/issues/45">this post</a>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew <span class="nb">install </span>spatialindex
+</code></pre></div></div>
+
+<h2 id="convert-national-landfire-raster-to-compressed-geotiff">Convert national landfire raster to compressed GeoTiff</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdal_translate <span class="nt">-ot</span> Int16 <span class="nt">-of</span> GTiff <span class="nt">-co</span> <span class="nv">COMPRESS</span><span class="o">=</span>DEFLATE ./US_140EVT_20180618/Grid/us_140evt ./test.tif
+</code></pre></div></div>
+
+<h2 id="download-jordans-old-vbet-projects">Download Jordan’s old VBET projects</h2>
+
+<p>aws s3 sync s3://riverscapesdata . –exclude=”<em>” –include=”</em>/VBET/*” –dryrun</p>
+
+<h2 id="ownership">Ownership</h2>
+
+<p>[BLM Surface Management Agency] geodatabase was downloaded and then the “surface management layer exported to shapefile (and reprpojected) using the following command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ogr2ogr <span class="nt">-f</span> <span class="s2">"ESRI Shapefile"</span> ~/GISData/NationalProject/ownership/surface_management_agency.shp ~/GISData/BLM_Owneership/BLM_National_Surface_Management_Agency/sma_wm.gdb SurfaceManagementAgency <span class="nt">-t_srs</span> <span class="s1">'EPSG:4269'</span> <span class="nt">-select</span> <span class="s1">'ADMIN_AGENCY_CODE'</span>
+</code></pre></div></div>
+
+<h1 id="precipitation">Precipitation</h1>
+
+<p><a href="http://www.prism.oregonstate.edu/recent">PrISM</a></p>
+
+<p><a href="https://www.sciencebase.gov/catalog/item/59c28f66e4b091459a61d335">PRISM on Science Base</a></p>
+
+<h1 id="canopy-cover">Canopy Cover</h1>
+
+<p>Downloaded the 2016 National Land Cover Database (NLCD) from <a href="https://www.mrlc.gov/data">Multi-Resolution Land Characteristics</a> web site. Got there from the <a href="https://archive.usgs.gov/archive/sites/landcover.usgs.gov/usgslandcover.html">USGS Land Cover Institute</a> (LCI).</p>
+
+<h1 id="running-nested-scripts">Running nested scripts</h1>
+
+<p>Use the following syntax to run scripts that are in subfolders, but run them from the parent folder in the context of that parent folder. This makes it possible for nested python scritps to refer to other nested libraries and still find these libraries when running the script directly.</p>
+
+<p>Note the <code class="language-plaintext highlighter-rouge">lib</code> below is the folder name but it is separated by a period and not a directory separator. And there is no <code class="language-plaintext highlighter-rouge">.py</code> file suffix needed.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python <span class="nt">-m</span> lib.build_vrt arg1 arg2 arg3
+</code></pre></div></div>
+
+<h1 id="landfire">Landfire</h1>
+
+<ol>
+  <li>Downloaded the Landfire 2 REMAP dataset as multiple, overlapping tiles. Make sure to change the raster format to GTiff before commencing any of the downloads.</li>
+  <li>Used the pyBRAT4 tool to build a single VRT file that references each GTiff.</li>
+  <li>Performed <code class="language-plaintext highlighter-rouge">gdal_translate</code> to convert the VRT into a single compressed GTiff.</li>
+  <li>Performed <code class="language-plaintext highlighter-rouge">gdal_warp</code> to reproject the raster.</li>
+  <li>Re-ran <code class="language-plaintext highlighter-rouge">gdal_translate</code> to compress the reprojcted raster (because <code class="language-plaintext highlighter-rouge">gdal_warp</code> produces bloated rasters).</li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdal_translate <span class="nt">-ot</span> Int16 <span class="nt">-of</span> GTiff <span class="nt">-co</span> <span class="nv">COMPRESS</span><span class="o">=</span>DEFLATE ./landfire.vrt ./landfire_vrt.tif
+gdalwarp <span class="nt">-t_srs</span> <span class="s1">'EPSG:4326'</span> ./landfire_vrt_comp.tif ./landfire_vrt_warp.tif
+gdal_translate <span class="nt">-ot</span> Int16 <span class="nt">-of</span> GTiff <span class="nt">-co</span> <span class="nv">COMPRESS</span><span class="o">=</span>DEFLATE ./landfire_vrt_warp.if ./landfire_vrt_warp_trans.tif
+</code></pre></div></div>
+
+<h2 id="warehouse-rs-context-download">Warehouse RS Context download</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rscli download ~/GISData/brat/rs_context/17060204 <span class="nt">--type</span> RSContext <span class="nt">--meta</span> <span class="nv">huc8</span><span class="o">=</span>17060204 <span class="nt">--verbose</span>
+rscli download ~/GISData/BRAT/brat/17040201 <span class="nt">--type</span> BRAT <span class="nt">--meta</span> <span class="nv">huc8</span><span class="o">=</span>17040201 <span class="nt">--verbose</span> <span class="nt">--file-filter</span> <span class="s2">"Outputs"</span> <span class="nt">--no-delete</span>
+
+</code></pre></div></div>
+
+<h2 id="update-the-cli">Update the CLI</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>npm <span class="nb">install</span> <span class="nt">-g</span> @riverscapes/cli
+</code></pre></div></div>
+
+<h2 id="other-options">Other options</h2>
+
+<p><code class="language-plaintext highlighter-rouge">NO_UI</code> is an environment variable that, if set, will disable all colours and progress bars. This is mostly to create cleaner log files for headless runs.</p>
+</section>
+      </div>
+      <div id="sidebar" class="large-4 columns large-pull-8">
+          
+	
+	<div class="title-bar">
+		<div class="title-bar-title"><i class="fa fa-file-text"></i> Page Contents</div>		
+	</div>
+	<div id="toc"></div>
+	
+
+
+<div class="title-bar">
+	<div class="title-bar-title"><i class="fa fa-sitemap"></i> Site Contents
+		<div id="menuCtls" class="button-group tiny show-for-medium">
+				<span id="expand" class="button primary fa fa-plus has-tip top" data-tooltip title="Expand all items" aria-haspopup="true" data-disable-hover="false" ></span>
+				<span id="contract" class="button primary fa fa-minus has-tip top" data-tooltip title="Contract all items" aria-haspopup="true" data-disable-hover="false" ></span>
+			</div>	
+	</div>
+</div>
+ <div id="sidenav">
+			<ul id='HTMLOnlyNav'>							<li><a href='/brat/Technical_Reference/architecture.html'>Architecture</a></li>							<li><a href='/brat/Technical_Reference/calibration.html'>CONUS BRAT Calibration</a></li>							<li><a href='/brat/Technical_Reference/database.html'>Database</a></li>							<li><a href='/brat/Technical_Reference/help.html'>Help</a></li>							<li><a href='/brat/Technical_Reference/inputs.html'>Inputs</a></li>							<li><a href='/brat/Technical_Reference/installation.html'>Installation</a></li>							<li><a href='/brat/Technical_Reference/international.html'>Configuring BRAT outside the US</a></li>							<li><a href='/brat/Technical_Reference/outputs.html'>Outputs</a></li>							<li><a href='/brat/Technical_Reference/regional_regression.html'>Regional Regression Equations</a></li>							<li><a href='/brat/Technical_Reference/running_brat.html'>Running BRAT</a></li>							<li><a href='/brat/Technical_Reference/suitability.html'>Importing Suitability</a></li>							<li><a href='/brat/Validation/combined_fis.html'>Combined FIS Validation</a></li>							<li><a href='/brat/Validation/'>Validation</a></li>							<li><a href='/brat/Validation/reach_geometry.html'>Reach Geometry Validation</a></li>							<li><a href='/brat/Validation/slope_validation.html'>Slope</a></li>							<li><a href='/brat/Validation/vegetation_fix.html'>Vegetation FIS Validation</a></li>							<li><a href='/brat/Vision.html'>Vision</a></li>							<li><a href='/brat/acknowledgements.html'>Acknowledgements</a></li>							<li><a href='/brat/assets/images/favicons/manifest.json'></a></li>							<li><a href='/brat/assets/js/nav.js'>Test</a></li>							<li><a href='/brat/getting_started.html'>Getting Started</a></li>							<li><a href='/brat/'>Home</a></li>							<li><a href='/brat/references.html'>BRAT References</a></li>							<li><a href='/brat/support.html'>Support</a></li>		</ul>	
+</div>
+
+<!-- Sidebar is where the extended sidepanel stuff like mailchimp forms go -->
+
+<!-- This is where you put your extra sidebar info like a mailchimp form -->
+<a href="/">Back to riverscapes tools</a>
+        </div>
+    </div>
+  </div>
+
+
+    <footer id="footer" class="row">
+<div id="rightslogo">
+    <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+        <img src="/brat/assets/images/cc-watermarks-riverscapes_orig.png" alt="Picture">
+    </a>
+</div>
+</footer>
+    
+
+    <script src="/brat/assets/js/jquery.min.js"></script>
+    <script src="/brat/assets/js/motion-ui.min.js"></script>
+    <script src="/brat/assets/js/foundation.min.js"></script>
+    <script src="/brat/assets/js/toc.js"></script>
+    <script src="/brat/assets/js/nav.js"></script>
+    <script src="/brat/assets/js/app.js"></script>
+
+  </body>
+
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>VBET - Valley Bottom Extraction Tool</title>
+
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="/vbet/assets/css/style.css">
+      <link rel="stylesheet" href="/vbet/assets/css/custom.css">
+
+      <link rel="apple-touch-icon" sizes="57x57" href="/vbet/assets/images/favicons/apple-icon-57x57.png">
+      <link rel="apple-touch-icon" sizes="60x60" href="/vbet/assets/images/favicons/apple-icon-60x60.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="/vbet/assets/images/favicons/apple-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="76x76" href="/vbet/assets/images/favicons/apple-icon-76x76.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="/vbet/assets/images/favicons/apple-icon-114x114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="/vbet/assets/images/favicons/apple-icon-120x120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="/vbet/assets/images/favicons/apple-icon-144x144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/vbet/assets/images/favicons/apple-icon-152x152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/vbet/assets/images/favicons/apple-icon-180x180.png">
+      <link rel="icon" type="image/png" sizes="192x192"  href="/vbet/assets/images/favicons/android-icon-192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="/vbet/assets/images/favicons/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="/vbet/assets/images/favicons/favicon-96x96.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/vbet/assets/images/favicons/favicon-16x16.png">
+      <link rel="manifest" href="/vbet/assets/images/favicons/manifest.json">
+      <meta name="msapplication-TileColor" content="#ffffff">
+      <meta name="msapplication-TileImage" content="/vbet/assets/images/favicons/ms-icon-144x144.png">
+      <meta name="theme-color" content="#ffffff">
+      <link rel="shortcut icon" href="/vbet/assets/images/favicons/favicon.ico" />
+
+      <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+  </head>
+
+  <body>
+
+  <header>
+    <div id="topbarnav"></div>
+    <div id="headcallout" class="text-center callout large">
+      
+
+
+<h4 class="subheader show-for-medium"><a href="/vbet/">VBET - Valley Bottom Extraction Tool</a></h4>   
+<h1>Algorithm</h1>
+    
+
+    </div>
+  </header>
+
+  <div id="inner-wrapper">
+    <div id="inner" class="row">
+      <div id="main" class="large-8 columns large-push-4">
+        <section><p>This temporary page describes the current experimental VBET algorithm.</p>
+
+<h3 id="step-1---slope-evidence">Step 1 - Slope Evidence</h3>
+
+<p>The first step is to divide the original slope raster by -12 and then add 1. We then set any negative values to NULL. (<a href="https://github.com/Riverscapes/sqlBRAT/blob/master/vbet.py#L144-L145">code</a>). The constant value of 12 is passed to the script as an argument so that it can be adjusted easily.</p>
+
+<p>The goal is to invert the raster so that low slope values have the highest raster values and then discard (set null) any areas that had an original slope value of 12 degrees or greater. The result is a raster with the following range</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Original Slope Value</th>
+      <th>Output Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>&gt; 12</td>
+      <td>NULL</td>
+    </tr>
+    <tr>
+      <td>NULL</td>
+      <td>NULL</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="step-2---hand-evidence">Step 2 - HAND Evidence</h3>
+
+<p>The HAND raster is treated in the same away as the slope raster. It is divided by -50 and then 1 added to the result. (<a href="https://github.com/Riverscapes/sqlBRAT/blob/master/vbet.py#L148-L149">code</a>). Again the constant value of 50 is passed as an argument.</p>
+
+<p>The goal is to invert the raster so that high HAND values have the lowest raster values and then discard and values greater than 50 m.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Original HAND Value</th>
+      <th>Output Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>50</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>&gt; 50</td>
+      <td>NULL</td>
+    </tr>
+    <tr>
+      <td>NULL</td>
+      <td>NULL</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="step-3---channel-evidence">Step 3 - Channel Evidence</h3>
+
+<p>A third evidence raster is generated that represents wet areas - essentially areas virtually guaranteed to be valley bottom. First the perennial polyline network is buffered by 25 metres (<a href="https://github.com/Riverscapes/sqlBRAT/blob/master/vbet.py#L92">code</a>) and converted into a raster. Next the flow area polygons representing large channels are also rasterized and combined into the network raster.</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Feature</td>
+      <td>Output Value</td>
+    </tr>
+    <tr>
+      <td>Perennial network buffered by 25 m</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Flow area polygons</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>All other areas</td>
+      <td>Null</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="step-4----combined-evidence">Step 4  - Combined Evidence</h3>
+
+<p>The slope evidence and HAND evidence rasters are multiplied together (<a href="https://github.com/Riverscapes/sqlBRAT/blob/master/vbet.py#L150">code</a>). The channel evidence is then burned into the resultant raster. Essentially the result of the multiplication is updated to be 1 wherever the channel evidence raster is 1.</p>
+
+<p>The end result is a raster with a value of 1 in the channel and flow areas. Just less than 1 in flat areas at elevations close to the channel. Zero occurs in steep areas or places at higher elevations above the channel.</p>
+
+<h3 id="step-5---thershold-and-vectorize">Step 5 - Thershold and Vectorize</h3>
+
+<p>The combined evidence raster is then thresholded in increments of 0.1 from 0.5 to 1.0 (<a href="https://github.com/Riverscapes/sqlBRAT/blob/master/vbet.py#L180">code</a>). At each step values less than the threshold are set to NULL. The resultant raster is then vectorized and written to a series of ShapeFiles.</p>
+
+<h3 id="step-6---polygon-sanitation">Step 6 - Polygon Sanitation</h3>
+
+<p>The polygons from the previous step are sanitized (<a href="https://github.com/Riverscapes/sqlBRAT/blob/master/vbet.py#L231-L280">code</a>) and written to the final output Shapefiles.</p>
+
+<ul>
+  <li>Polygons are simplified</li>
+  <li>Small donuts are removed</li>
+  <li>Negatively buffered</li>
+  <li>Small holes are removed</li>
+  <li>All polygons unioned together</li>
+</ul>
+
+<h3 id="vbet-project">VBET Project</h3>
+
+<p>Here’s a description of the final VBET project folder structure:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Path</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>inputs/channel.tif</td>
+      <td>25 m buffer around perennial network converted to a raster.</td>
+    </tr>
+    <tr>
+      <td>inputs/dem_hillshade.tif</td>
+      <td>context only. Not used in analysis.</td>
+    </tr>
+    <tr>
+      <td>inputs/flow_areas.shp</td>
+      <td>Original NHD flow area polygons</td>
+    </tr>
+    <tr>
+      <td>inputs/flowlines.shp</td>
+      <td>Original NHD network polygons</td>
+    </tr>
+    <tr>
+      <td>inputs/hand.tif</td>
+      <td>Original HAND raster</td>
+    </tr>
+    <tr>
+      <td>inputs/slope.tif</td>
+      <td>Original slope raster in degress</td>
+    </tr>
+    <tr>
+      <td>intermediates/Evidence.tif</td>
+      <td>Multiband evidence raster. Band 1 is slope evidence multiplied by HAND evidence. Band 2 is channel evidence.</td>
+    </tr>
+    <tr>
+      <td>intermediates/thresh_50 to _100.shp</td>
+      <td>Combined evidence raster thresholded at increments of 0.1 converted to vector. No sanitization.</td>
+    </tr>
+    <tr>
+      <td>intermediates/vbet_network.shp</td>
+      <td>filtered flow line network. Currently just perennial.</td>
+    </tr>
+    <tr>
+      <td>outputs/vbet_50 to _100.shp</td>
+      <td>Final sanitized VBET polygons in increments of 0.1 probability of being valley bottom.</td>
+    </tr>
+    <tr>
+      <td>project.rs.xml</td>
+      <td>Riverscapes project file</td>
+    </tr>
+    <tr>
+      <td>vbet.log</td>
+      <td>Processing log</td>
+    </tr>
+  </tbody>
+</table>
+
+</section>
+      </div>
+      <div id="sidebar" class="large-4 columns large-pull-8">
+          
+	
+	<div class="title-bar">
+		<div class="title-bar-title"><i class="fa fa-file-text"></i> Page Contents</div>		
+	</div>
+	<div id="toc"></div>
+	
+
+
+<div class="title-bar">
+	<div class="title-bar-title"><i class="fa fa-sitemap"></i> Site Contents
+		<div id="menuCtls" class="button-group tiny show-for-medium">
+				<span id="expand" class="button primary fa fa-plus has-tip top" data-tooltip title="Expand all items" aria-haspopup="true" data-disable-hover="false" ></span>
+				<span id="contract" class="button primary fa fa-minus has-tip top" data-tooltip title="Contract all items" aria-haspopup="true" data-disable-hover="false" ></span>
+			</div>	
+	</div>
+</div>
+ <div id="sidenav">
+			<ul id='HTMLOnlyNav'>							<li><a href='/vbet/algorithm.html'>Algorithm</a></li>							<li><a href='/vbet/assets/images/favicons/manifest.json'></a></li>							<li><a href='/vbet/assets/js/nav.js'>Test</a></li>							<li><a href='/vbet/'>My Homepage</a></li>		</ul>	
+</div>
+
+<!-- Sidebar is where the extended sidepanel stuff like mailchimp forms go -->
+
+<!-- This is where you put your extra sidebar info like a mailchimp form -->
+<a href="/">Back to riverscapes tools</a>
+        </div>
+    </div>
+  </div>
+
+
+    <footer id="footer" class="row">
+<div id="rightslogo">
+    <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+        <img src="/vbet/assets/images/cc-watermarks-riverscapes_orig.png" alt="Picture">
+    </a>
+</div>
+</footer>
+    
+
+    <script src="/vbet/assets/js/jquery.min.js"></script>
+    <script src="/vbet/assets/js/motion-ui.min.js"></script>
+    <script src="/vbet/assets/js/foundation.min.js"></script>
+    <script src="/vbet/assets/js/toc.js"></script>
+    <script src="/vbet/assets/js/nav.js"></script>
+    <script src="/vbet/assets/js/app.js"></script>
+
+  </body>
+
+</html>

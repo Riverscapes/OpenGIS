@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>BRAT</title>
+
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="/brat/assets/css/style.css">
+      <link rel="stylesheet" href="/brat/assets/css/custom.css">
+
+      <link rel="apple-touch-icon" sizes="57x57" href="/brat/assets/images/favicons/apple-icon-57x57.png">
+      <link rel="apple-touch-icon" sizes="60x60" href="/brat/assets/images/favicons/apple-icon-60x60.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="/brat/assets/images/favicons/apple-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="76x76" href="/brat/assets/images/favicons/apple-icon-76x76.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="/brat/assets/images/favicons/apple-icon-114x114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="/brat/assets/images/favicons/apple-icon-120x120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="/brat/assets/images/favicons/apple-icon-144x144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/brat/assets/images/favicons/apple-icon-152x152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/brat/assets/images/favicons/apple-icon-180x180.png">
+      <link rel="icon" type="image/png" sizes="192x192"  href="/brat/assets/images/favicons/android-icon-192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="/brat/assets/images/favicons/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="/brat/assets/images/favicons/favicon-96x96.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/brat/assets/images/favicons/favicon-16x16.png">
+      <link rel="manifest" href="/brat/assets/images/favicons/manifest.json">
+      <meta name="msapplication-TileColor" content="#ffffff">
+      <meta name="msapplication-TileImage" content="/brat/assets/images/favicons/ms-icon-144x144.png">
+      <meta name="theme-color" content="#ffffff">
+      <link rel="shortcut icon" href="/brat/assets/images/favicons/favicon.ico" />
+
+      <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+  </head>
+
+  <body>
+
+  <header>
+    <div id="topbarnav"></div>
+    <div id="headcallout" class="text-center callout large">
+      
+<h4 class="subheader show-for-medium"><a href="/brat/">BRAT</a></h4>   
+<h1>CONUS BRAT Calibration</h1>
+    
+
+
+    </div>
+  </header>
+
+  <div id="inner-wrapper">
+    <div id="inner" class="row">
+      <div id="main" class="large-8 columns large-push-4">
+        <section><p>The following instructions describe how to parameterize BRAT within the continental United States. Users outside the United States should refer to the <a href="/brat/Technical_Reference/international.html">international instructions</a>.</p>
+
+<h1 id="brat-parameter-database">BRAT Parameter Database</h1>
+
+<p>BRAT Parameters for the continental Unoted States are stored in a PostGres database. Email the BRAT development team at (info@northarrowresearch.com) for access to this database should you wish to get access to this database and contribute parameters.</p>
+
+<p>The BRAT parameter database schema is a subset of the database that is generated as part of each BRAT run. When the BRAT model is run, the contents of the parameter database are used to seed a copy of the model run database on your local computer. In this way the BRAT parameter database is intended to act as the central repository of BRAT parameters for BRAT runs, and a single place where analysts can share these parameters.</p>
+
+<p>Refer to the <a href="database.html">BRAT model database documentation</a> for a description of the database tables.</p>
+
+<p><img src="https://docs.google.com/drawings/d/e/2PACX-1vSKwIBhCgP7RBw6SdceOFOUrYvoOibm_e4I9-tJXGrH73aQJdwte4wP8K2MY3QnRCU6mfWqX4yquZ7M/pub?w=561&amp;h=666" alt="BRAT Parameter Database" /></p>
+
+<h1 id="software">Software</h1>
+
+<p>To edit BRAT parameters you will need a piece of software that can connect to PostGres databases. We recommend <a href="https://www.jetbrains.com/datagrip/">DataGrip</a> for which there is a free educational license. With DataGrip you can enter parameters using SQL statements or there are also editing tools that let you edit the data within a table, like a spreadsheet.</p>
+
+<p>Contact the BRAT development team (info@norrtharrowresearch.com) for credentials to access this database.</p>
+
+<p><img src="/brat/assets/images/calibration/data_grip_edit_parameters.png" alt="DataGrip" /></p>
+
+<h1 id="parameters">Parameters</h1>
+
+<h1 id="4-maximum-drainage-area">4. Maximum Drainage Area</h1>
+
+<p>Beaver dams are washed out by high flows and so BRAT needsd to know the places in the watershed where these high flows occur. Anywhere with flows higher than the specified parameter will have the output beaver dam capacity set to zero. BRAT takes this parameter in the form of a “maximum drainage area” value as opposed to discharge. The steps to find this parameter are:</p>
+
+<ol>
+  <li>Open your desktop GIS software.</li>
+  <li>Load the stream network layer from your BRAT run:
+    <ol>
+      <li>Open the <a href="http://rave.riverscapes.xyz">RAVE toolbar</a>
+​    1. Open the BRAT run riverscapes project file called <code class="language-plaintext highlighter-rouge">project.rs.xml</code>. It should reside in the root of the BRAT project.
+​    1. Right click on the <strong><em>*NHDFlowline*</em></strong> layer in the BRAT inputs section of the project tree and click “Add To Map”.</li>
+      <li>Load the best available base imagery. You can use satellite basemap in ArcGIS or add a similar <a href="https://planet.qgis.org/planet/tag/world%20imagery/">satellite layer in QGIS</a>.</li>
+    </ol>
+  </li>
+  <li>Pan and zoom to find the place where water flows out of the eight digit HUC. There may be several actual streams if the outflow is braided.</li>
+  <li>Use the measure tool (<a href="https://desktop.arcgis.com/en/arcmap/10.3/map/working-with-layers/measuring-distances-and-areas.htm">ArcGIS</a>, <a href="https://docs.qgis.org/2.8/en/docs/user_manual/introduction/general_tools.html#measure-length-areas-and-angles">QGIS</a>) to measure the width of the visible river channel at the watesrhed outflow.</li>
+  <li>Proceed upstream looking for the first reach where the width of the channel is approximately 20 m or less.</li>
+  <li>Use the identify tool (<a href="https://desktop.arcgis.com/en/arcmap/10.3/map/working-with-layers/identifying-features.htm">ArcGIS</a>, <a href="https://docs.qgis.org/2.8/en/docs/user_manual/introduction/general_tools.html#identify">QGIS</a>) to query the attributes of the uppermost reach that has a width of 20 m.</li>
+  <li>Note down the drainage area value for this feature from the <code class="language-plaintext highlighter-rouge">iGeo_DA</code> attribute.</li>
+  <li>Enter the <code class="language-plaintext highlighter-rouge">iGeo_DA</code> drainage area value into the <code class="language-plaintext highlighter-rouge">MaxDrainageArea</code> column of the Google Sheet.</li>
+</ol>
+
+<h2 id="video-demonstration">Video Demonstration</h2>
+
+<div class="responsive-embed">
+<iframe src="https://www.youtube.com/embed/u6c6g1tdhak" frameborder="0" allowfullscreen=""></iframe>
+</div>
+
+<h1 id="5-hydrologic-regional-equations">5. Hydrologic Regional Equations</h1>
+
+<p>BRAT needs two discharge values for each reach feature within a watershed. The first is for low flow that captures whether there is sufficient water in the channel during dry periods to support a beaver dam and lodge. The second is for peak flow that captures whether a 2 year recurrance interval flood would wash out a beaver dam.</p>
+
+<p>BRAT calculates these discharges using regional hydrologic equations that convert drainage area into discharge. The USGS maintains a series of publications that contain hydrologic equations for the continental United States:</p>
+
+<p><a href="https://water.usgs.gov/osw/programs/nss/pubs.html">https://water.usgs.gov/osw/programs/nss/pubs.html</a></p>
+
+<p>The typical equation will be of the form where Q equals:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0.000133 * (DRNAREA ** 1.05) * (PRECIP) ** 2.1
+</code></pre></div></div>
+
+<p>Where <code class="language-plaintext highlighter-rouge">DRNAREA</code> represents the drainage area for a particular reach. Other parameters (such as <code class="language-plaintext highlighter-rouge">PRECIP</code> in the example given) may be present. We have calculate most of these for the Pacific northwest United States.</p>
+
+<p>Copy and paste the relevant low (QLow) and peak (Q2) formulas into the relevant columns in the aforementioned Google Sheet. Note that the syntax is Python where the syntax for raising the power is double asterix (**) and not a carrot (^).</p>
+
+<p>State specific documentation can be found <a href="https://riverscapes.github.io/sqlBRAT/Technical_Reference/regional_regression.html">here</a>.</p>
+
+<h1 id="6-vegetation-suitability">6. Vegetation Suitability</h1>
+
+<p>The suitability of riparian vegetation for beaver dam construction is calculated for both existing conditions as well as in the past, pre-European settlement. LandFire 2.0 Existing Vegetation Type (EVT) is used for the existing conditions and LandFire 2.0 Biophysical Settings (BPS) is used for historical context. Each possible EVT and BPS vegetation type is assigned a default suitability from 0 to 4, with 0 being unsuitable for beavers and 4 being the most suitable.</p>
+
+<p>Each vegetation type might also have an override suitability within a specific ecoregion given the relative availability of other vegetation species. For example Ponderosa pine might have a default suitability of 2 given its thick bark, but in a specific dry ecoregion with few other options, Ponderosa Pine might be assigned an override suitability of 3.</p>
+
+<p>Default suitabilities can be specified on the Vegetation Types tab of the Google Sheet. It can be useful to filter the vegetation types by epoch, representing either the existing EVT or historical BPS. Note that this worksheet is used by all BRAT runs in all watersheds in the continental United States. Be careful when assigning values that this affects all watersheds!</p>
+
+<p>Override suitabilities can be assigned to specific ecoregions using the VegetationOverrides worksheet. Refer to the Watersheds worksheet to determine the ecoregion assignment for each watershed.</p>
+
+<p>It might be helpful to review which vegetation types are present within a BRAT project. To do this open the <code class="language-plaintext highlighter-rouge">brat.sqlite</code> <a href="/brat/Technical_Reference/database.html">database</a> using your preferred database software and review the contents of the <code class="language-plaintext highlighter-rouge">vwReachVegetationTypes</code> view. This view summarizes the total area of all the different vegetation types present within both the 100 m and 30 m buffers adjacent to reaches within a watershed.</p>
+
+<p><img src="/brat/assets/images/calibration/vwReachVegetationTypes.png" alt="vwReachVegetationTypes" /></p>
+
+<p>Information on how to import vegetation suitability values from old pyBRAT projects can be found on the page for <a href="/brat/Technical_Reference/suitability.html">importing suitability values</a>.</p>
+
+<h1 id="7-run-brat">7. Run BRAT</h1>
+
+<p>Once you have updated all three parameters for a particular watershed you should contact North Arrow Research to re-run BRAT for your watershed. The results will automatically be uploaded to the riverscapes Data Warehouse where you can download them and review the affects of your changes.</p>
+
+<h1 id="useful-brat-parameter-database-commands">Useful BRAT Parameter Database Commands</h1>
+
+<p>You can execute these commands by right clicking on the database node in DataGrip and choosing to open a new Console. Cut and paste in the following commands and then tweak as necessary.</p>
+
+<p>To update the max drainage value of a particular HUC:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">UPDATE</span> <span class="n">watersheds</span> <span class="k">SET</span> <span class="n">max_drainage</span> <span class="o">=</span> <span class="mi">1234</span><span class="p">.</span><span class="mi">5678</span> <span class="k">WHERE</span> <span class="n">watershed_id</span> <span class="o">=</span> <span class="s1">'17050001'</span>
+</code></pre></div></div>
+
+<p>To update the default suitability to zero for the existing vegetation type <em>Alaska Arctic Tidal Marsh</em> which has the LandFire ID of 2222:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">UPDATE</span> <span class="n">vegetation_types</span> <span class="k">SET</span> <span class="n">default_suitability</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">WHERE</span> <span class="n">vegetation_id</span> <span class="o">=</span> <span class="mi">2222</span>
+</code></pre></div></div>
+
+<p>To update default suitabilities for several vegetation types:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">UPDATE</span> <span class="n">vegetation_types</span> <span class="k">SET</span> <span class="n">default_suitability</span> <span class="o">=</span> <span class="mi">3</span> <span class="k">WHERE</span> <span class="n">vegetation_id</span> <span class="k">IN</span> <span class="p">(</span><span class="mi">1234</span><span class="p">,</span> <span class="mi">4567</span><span class="p">,</span> <span class="mi">7777</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>To add an override vegetation suitability for a specific vegetation type and ecoregion:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">vegetation_overrides</span> <span class="p">(</span><span class="n">vegetation_id</span><span class="p">,</span> <span class="n">ecoregion_it</span><span class="p">,</span> <span class="n">override_suitability</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="mi">2222</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>To find all the vegetation overrides for a particular ecoregion:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">vegetation_overrides</span> <span class="k">WHERE</span> <span class="n">ecoregion_id</span> <span class="o">=</span> <span class="mi">14</span>
+</code></pre></div></div>
+
+<p>To delete a particular vegetation override:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELETE</span> <span class="k">FROM</span> <span class="n">vegetation_overrides</span> <span class="k">WHERE</span> <span class="n">vegetation_id</span> <span class="o">=</span> <span class="mi">2222</span> <span class="k">and</span> <span class="n">ecoregion_id</span> <span class="o">=</span> <span class="mi">14</span>
+</code></pre></div></div>
+
+</section>
+      </div>
+      <div id="sidebar" class="large-4 columns large-pull-8">
+          
+	
+	<div class="title-bar">
+		<div class="title-bar-title"><i class="fa fa-file-text"></i> Page Contents</div>		
+	</div>
+	<div id="toc"></div>
+	
+
+
+<div class="title-bar">
+	<div class="title-bar-title"><i class="fa fa-sitemap"></i> Site Contents
+		<div id="menuCtls" class="button-group tiny show-for-medium">
+				<span id="expand" class="button primary fa fa-plus has-tip top" data-tooltip title="Expand all items" aria-haspopup="true" data-disable-hover="false" ></span>
+				<span id="contract" class="button primary fa fa-minus has-tip top" data-tooltip title="Contract all items" aria-haspopup="true" data-disable-hover="false" ></span>
+			</div>	
+	</div>
+</div>
+ <div id="sidenav">
+			<ul id='HTMLOnlyNav'>							<li><a href='/brat/Technical_Reference/architecture.html'>Architecture</a></li>							<li><a href='/brat/Technical_Reference/calibration.html'>CONUS BRAT Calibration</a></li>							<li><a href='/brat/Technical_Reference/database.html'>Database</a></li>							<li><a href='/brat/Technical_Reference/help.html'>Help</a></li>							<li><a href='/brat/Technical_Reference/inputs.html'>Inputs</a></li>							<li><a href='/brat/Technical_Reference/installation.html'>Installation</a></li>							<li><a href='/brat/Technical_Reference/international.html'>Configuring BRAT outside the US</a></li>							<li><a href='/brat/Technical_Reference/outputs.html'>Outputs</a></li>							<li><a href='/brat/Technical_Reference/regional_regression.html'>Regional Regression Equations</a></li>							<li><a href='/brat/Technical_Reference/running_brat.html'>Running BRAT</a></li>							<li><a href='/brat/Technical_Reference/suitability.html'>Importing Suitability</a></li>							<li><a href='/brat/Validation/combined_fis.html'>Combined FIS Validation</a></li>							<li><a href='/brat/Validation/'>Validation</a></li>							<li><a href='/brat/Validation/reach_geometry.html'>Reach Geometry Validation</a></li>							<li><a href='/brat/Validation/slope_validation.html'>Slope</a></li>							<li><a href='/brat/Validation/vegetation_fix.html'>Vegetation FIS Validation</a></li>							<li><a href='/brat/Vision.html'>Vision</a></li>							<li><a href='/brat/acknowledgements.html'>Acknowledgements</a></li>							<li><a href='/brat/assets/images/favicons/manifest.json'></a></li>							<li><a href='/brat/assets/js/nav.js'>Test</a></li>							<li><a href='/brat/getting_started.html'>Getting Started</a></li>							<li><a href='/brat/'>Home</a></li>							<li><a href='/brat/references.html'>BRAT References</a></li>							<li><a href='/brat/support.html'>Support</a></li>		</ul>	
+</div>
+
+<!-- Sidebar is where the extended sidepanel stuff like mailchimp forms go -->
+
+<!-- This is where you put your extra sidebar info like a mailchimp form -->
+<a href="/">Back to riverscapes tools</a>
+        </div>
+    </div>
+  </div>
+
+
+    <footer id="footer" class="row">
+<div id="rightslogo">
+    <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+        <img src="/brat/assets/images/cc-watermarks-riverscapes_orig.png" alt="Picture">
+    </a>
+</div>
+</footer>
+    
+
+    <script src="/brat/assets/js/jquery.min.js"></script>
+    <script src="/brat/assets/js/motion-ui.min.js"></script>
+    <script src="/brat/assets/js/foundation.min.js"></script>
+    <script src="/brat/assets/js/toc.js"></script>
+    <script src="/brat/assets/js/nav.js"></script>
+    <script src="/brat/assets/js/app.js"></script>
+
+  </body>
+
+</html>
