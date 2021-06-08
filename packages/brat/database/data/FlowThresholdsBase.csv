@@ -1,0 +1,4 @@
+BaseFlowID,Name,MinFlow
+1,Can Build Dam,0
+2,Probably Can Build Dam,160
+3,Cannot Build Dam,185
