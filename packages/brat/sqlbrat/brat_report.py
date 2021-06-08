@@ -252,8 +252,8 @@ class BratReport(RSReport):
             img_wrap.append(img)
             plot_wrapper.append(img_wrap)
 
-        self.hydrology_tables('QLow', section)
-        self.hydrology_tables('Q2', section)
+        self.hydrology_tables('iHyd_SPLow', section)
+        self.hydrology_tables('iHyd_SP2', section)
 
     def reach_attribute_summary(self):
         section = self.section('ReachAttributeSummary', 'Geophysical Attributes')
