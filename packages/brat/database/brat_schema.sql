@@ -3,6 +3,8 @@ CREATE TABLE DamLimitations (LimitationID INTEGER PRIMARY KEY NOT NULL UNIQUE, N
 CREATE TABLE DamOpportunities (OpportunityID INTEGER PRIMARY KEY UNIQUE NOT NULL, Name TEXT UNIQUE NOT NULL);
 CREATE TABLE DamRisks (RiskID INTEGER PRIMARY KEY UNIQUE NOT NULL, Name TEXT UNIQUE NOT NULL);
 CREATE TABLE DamCapacities (CapacityID INTEGER PRIMARY KEY NOT NULL, Name TEXT UNIQUE NOT NULL, MinCapacity REAL, MaxCapacity REAL);
+CREATE TABLE FlowThresholdsBase (BaseFlowID INTEGER PRIMARY KEY NOT NULL, Name TEXT UNIQUE NOT NULL, MinFlow REAL);
+CREATE TABLE FlowThresholdsHigh (HighFlowID INTEGER PRIMARY KEY NOT NULL, Name TEXT UNIQUE NOT NULL, MinFlow REAL);
 CREATE TABLE Epochs (EpochID INTEGER PRIMARY KEY NOT NULL, Name TEXT NOT NULL UNIQUE, Metadata TEXT, Notes TEXT);
 CREATE TABLE ReachCodes (ReachCode INTEGER PRIMARY KEY NOT NULL, Name TEXT NOT NULL, DisplayName TEXT, Description TEXT NOT NULL);
 CREATE TABLE ReachVegetation (ReachID INTEGER REFERENCES ReachAttributes ON DELETE CASCADE NOT NULL, VegetationID INTEGER REFERENCES VegetationTypes (VegetationID) NOT NULL, Buffer REAL NOT NULL CONSTRAINT CHK_ReachVegetation_Buffer CHECK (Buffer > 0), Area REAL NOT NULL CONSTRAINT CHK_ReachVegetation_Area CHECK (Area > 0), CellCount REAL NOT NULL CONSTRAINT CHK_ReachVegetation_CellCount CHECK (CellCount > 0), PRIMARY KEY (ReachID, VegetationID, Buffer));
@@ -144,6 +146,8 @@ INSERT INTO gpkg_contents (table_name, data_type) VALUES ('DamLimitations', 'att
 INSERT INTO gpkg_contents (table_name, data_type) VALUES ('DamOpportunities', 'attributes');
 INSERT INTO gpkg_contents (table_name, data_type) VALUES ('DamRisks', 'attributes');
 INSERT INTO gpkg_contents (table_name, data_type) VALUES ('DamCapacities', 'attributes');
+INSERT INTO gpkg_contents (table_name, data_type) VALUES ('FlowThresholdsBase', 'attributes');
+INSERT INTO gpkg_contents (table_name, data_type) VALUES ('FlowThresholdsHigh', 'attributes');
 INSERT INTO gpkg_contents (table_name, data_type) VALUES ('Epochs', 'attributes');
 INSERT INTO gpkg_contents (table_name, data_type) VALUES ('ReachCodes', 'attributes');
 INSERT INTO gpkg_contents (table_name, data_type) VALUES ('ReachVegetation', 'attributes');
