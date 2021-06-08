@@ -172,6 +172,39 @@ class BratReport(RSReport):
         data.append(('Total', cumulative_length_km, cumulative_length_km * 0.621371, 100 * cumulative_length_km / total_length_km))
         RSReport.create_table_from_tuple_list((capacity_field, 'Stream Length (km)', 'Stream Length (mi)', 'Percent'), data, elParent)
 
+    def hydrology_tables(self, flow_field, elParent):
+        conn = sqlite3.connect(self.database)
+        curs = conn.cursor()
+
+        curs.execute('SELECT Name, MinFlow FROM FlowThresholdsBase ORDER BY MinFlow DESC')
+        bins = [(row[0], row[1]) for row in curs.fetchall()]
+
+        curs.execute('SELECT Sum(iGeo_Len) / 1000 FROM vwReaches')
+        total_length_km = curs.fetchone()[0]
+
+        data = []
+        last_bin = 99999999
+        cumulative_length_km = 0
+        for name, min_flow in bins:
+            curs.execute('SELECT Sum(iGeo_len) / 1000 FROM vwReaches WHERE {0} >= {1} AND {0} <= {2}'.format(flow_field, min_flow, last_bin))
+            rowi = curs.fetchone()
+            if not rowi or rowi[0] is None:
+                bin_km = 0
+            else:
+                bin_km = rowi[0] - cumulative_length_km
+                cumulative_length_km = rowi[0]
+            data.append((
+                '{}: {} - {}'.format(name, last_bin, min_flow),
+                bin_km,
+                bin_km * 0.621371,
+                100 * bin_km / total_length_km
+            ))
+
+            last_bin = min_flow
+
+        data.append(('Total', cumulative_length_km, cumulative_length_km * 0.621371, 100 * cumulative_length_km / total_length_km))
+        RSReport.create_table_from_tuple_list((flow_field, 'Stream Length (km)', 'Stream Length (mi)', 'Percent'), data, elParent)
+
     def hydrology_plots(self):
         section = self.section('HydrologyPlots', 'Hydrology')
 
@@ -219,6 +252,9 @@ class BratReport(RSReport):
             img_wrap.append(img)
             plot_wrapper.append(img_wrap)
 
+        self.hydrology_tables('QLow', section)
+        self.hydrology_tables('Q2', section)
+
     def reach_attribute_summary(self):
         section = self.section('ReachAttributeSummary', 'Geophysical Attributes')
 
@@ -233,7 +269,6 @@ class BratReport(RSReport):
         [self.reach_attribute(attribute, units, plot_wrapper) for attribute, name, units in attribs]
 
         section.append(plot_wrapper)\
-
 
     def ownership(self):
         section = self.section('Ownership', 'Ownership')
