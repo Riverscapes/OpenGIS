@@ -150,7 +150,8 @@ def get_watershed_info(gpkg_path):
     """
 
     with SQLiteCon(gpkg_path) as database:
-        database.curs.execute('SELECT WatershedID, MaxDrainage, EcoregionID FROM Watersheds')
+        # Retrieve watershed information being careful that there might be records for all watersheds (so join to reaches)
+        database.curs.execute('SELECT W.WatershedID, W.MaxDrainage, W.EcoregionID FROM Watersheds W INNER JOIN ReachAttributes RA on W.WatershedID = RA.WatershedID LIMIT 1')
         row = database.curs.fetchone()
         watershed = row['WatershedID']
         max_drainage = row['MaxDrainage']

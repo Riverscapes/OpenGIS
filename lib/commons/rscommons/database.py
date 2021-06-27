@@ -89,7 +89,9 @@ def create_database(huc: str, db_path: str, metadata: Dict[str, str], epsg: int,
     load_lookup_data(db_path, os.path.dirname(schema_path))
 
     # Keep only the designated watershed
-    curs.execute('DELETE FROM Watersheds WHERE WatershedID <> ?', [huc])
+    # PGB 26 Feb 2021 - Can no longer delete other watersheds.
+    # We need all watersheds so we can store their attribute statistics for BRAT QA/QC
+    # curs.execute('DELETE FROM Watersheds WHERE WatershedID <> ?', [huc])
 
     # Retrieve the name of the watershed so it can be stored in riverscapes project
     curs.execute('SELECT Name FROM Watersheds WHERE WatershedID = ?', [huc])
@@ -144,7 +146,9 @@ def update_database(db_path, csv_path):
     load_lookup_data(db_path, csv_path)
 
     # Updated the database will reload ALL watersheds. Keep only the designated watershed for this run
-    curs.execute('DELETE FROM Watersheds WHERE WatershedID <> ?', [huc])
+    # PGB 26 Feb 2021 - Can no longer delete other watersheds.
+    # We need all watersheds so we can store their attribute statistics for BRAT QA/QC
+    # curs.execute('DELETE FROM Watersheds WHERE WatershedID <> ?', [huc])
 
     conn.commit()
     conn.execute("VACUUM")

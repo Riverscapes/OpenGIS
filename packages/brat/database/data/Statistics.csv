@@ -1,0 +1,8 @@
+StatisticID,StatisticName,Description
+1,Mean,
+2,Max,
+3,Min,
+4,StDev,
+5,CV,
+6,Count,
+7,Sum,
