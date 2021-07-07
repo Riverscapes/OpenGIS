@@ -1,94 +1,124 @@
-#!/usr/bin/env python3
-# Name:     GNAT
-#
-# Purpose:  Build a GNAT project by downloading and preparing
-#           commonly used data layers for several riverscapes tools.
-#
-# Author:   Kelly Whitehead
-#
-# Date:     24 Sep 2020
-# -------------------------------------------------------------------------------
-import argparse
-import sys
 import os
-import glob
-import traceback
-import uuid
-import datetime
-from osgeo import ogr
-from osgeo import gdal
+import sqlite3
 
-from rscommons import Logger, RSProject, RSLayer, ModelConfig, dotenv, initGDALOGRErrors
-from rscommons.util import safe_makedirs, safe_remove_dir
+import ogr
 
-from gnat.__version__ import __version__
-
-initGDALOGRErrors()
-
-cfg = ModelConfig('http://xml.riverscapes.xyz/Projects/XSD/V1/GNAT.xsd', __version__)
-
-LayerTypes = {
-    # key: (name, id, tag, relpath)
-    'DEM': RSLayer('NED 10m DEM', 'DEM', 'DEM', 'topography/dem.tif')
-}
+from rscommons import GeopackageLayer
+from rscommons.util import safe_makedirs, safe_remove_dir, parse_metadata
+from rscommons.database import load_lookup_data
 
 
-def gnat(huc, output_folder):
-    """[summary]
+class GNAT:
 
-    Args:
-        huc ([type]): [description]
+    def __init__(self, database_path, vb_polygons, inputs):
 
-    Raises:
-        Exception: [description]
-        Exception: [description]
-        Exception: [description]
-        Exception: [description]
+        # database
+        self.database = database_path
+        self.inputs = inputs
+        self.riverscapes_features = self.create_database(vb_polygons, True)
 
-    Returns:
-        [type]: [description]
-    """
+        self.run_metric = self._check_metrics()
 
-    log = Logger("GNAT")
-    log.info('GNAT v.{}'.format(cfg.version))
+        # # inputs
+        # self.flowlines = inputs['flowlines'] if 'flowlines' in inputs else None
+        # self.segmented_flowlines = inputs['segmented_flowlines'] if 'segmented_flowlines' in inputs else None
+        # self.dem = inputs['dem'] if 'dem' in inputs else None
+        # self.flow_regime_polygons = inputs['flow_regime_polygons'] if 'flow_regime_polygons' in inputs else None
+        # self.eco_region_polygons = inputs['ecoregion_polygons'] if 'ecoregion_polygons' in inputs else None
+        # self.valley_bottom_centerline = inputs['valley_bottom_centerline'] if 'valley_bottom_centerline' in inputs else None
 
-    try:
-        int(huc)
-    except ValueError:
-        raise Exception('Invalid HUC identifier "{}". Must be an integer'.format(huc))
+    def _check_metrics(self):
 
-    if not (len(huc) == 4 or len(huc) == 8):
-        raise Exception('Invalid HUC identifier. Must be four digit integer')
+        out_metrics = {}
 
-    safe_makedirs(output_folder)
+        with sqlite3.connect(self.database) as conn:
+            conn.execute('pragma foreign_keys=ON')
+            curs = conn.cursor()
+            metrics = curs.execute("""SELECT attribute_id, attribute_name FROM attributes""").fetchall()
 
+            for metric in metrics:
+                metric_inputs = curs.execute("""SELECT input_name FROM attributes
+                                    INNER JOIN attribute_inputs ON attributes.attribute_id = attribute_inputs.attribute_id
+                                    INNER JOIN inputs ON attribute_inputs.input_id = inputs.input_id
+                                    WHERE attributes.attribute_id = ?""", [metric[0]]).fetchall()
+                out_metrics[metric[1]] = all([metric_input[0] in self.inputs for metric_input in metric_inputs])
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='GNAT',
-        # epilog="This is an epilog"
-    )
-    parser.add_argument('huc', help='HUC identifier', type=str)
-    parser.add_argument('output_folder', help='Output folder', type=str)
-    parser.add_argument('--verbose', help='(optional) a little extra logging ', action='store_true', default=False)
+        return out_metrics
 
-    args = dotenv.parse_args_env(parser)
+    def create_database(self, in_layer, overwrite_existing=False):
+        """generates (if needed) and loads layer to gnat database
 
-    # Initiate the log file
-    log = Logger("GNAT")
-    log.setup(logPath=os.path.join(args.output, "gnat.log"), verbose=args.verbose)
-    log.title('GNAT For HUC: {}'.format(args.huc))
+        Args:
+            gnat_gpkg ([type]): [description]
+            in_layer ([type]): [description]
 
-    try:
-        gnat(args.hu, args.output_folder)
+        Returns:
+            [type]: [description]
+        """
 
-    except Exception as e:
-        log.error(e)
-        traceback.print_exc(file=sys.stdout)
-        sys.exit(1)
+        schema_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database')
 
-    sys.exit(0)
+        if overwrite_existing:
+            safe_remove_dir(self.database)
 
+        if not os.path.exists(self.database):
+            with GeopackageLayer(in_layer) as lyr_inputs, \
+                    GeopackageLayer(self.database, layer_name='riverscapes', write=True) as lyr_outputs:
 
-if __name__ == '__main__':
-    main()
+                srs = lyr_inputs.ogr_layer.GetSpatialRef()
+
+                lyr_outputs.create_layer(ogr.wkbPolygon, spatial_ref=srs, options=['FID=riverscape_id'], fields={
+                    'area_sqkm': ogr.OFTReal,
+                    'river_style_id': ogr.OFTInteger
+                })
+
+                for feat, *_ in lyr_inputs.iterate_features("Copying Riverscapes Features"):
+                    geom = feat.GetGeometryRef()
+                    fid = feat.GetFID()
+                    area = geom.GetArea()  # TODO calculate area as sqkm
+
+                    out_feature = ogr.Feature(lyr_outputs.ogr_layer_def)
+                    out_feature.SetGeometry(geom)
+                    out_feature.SetFID(fid)
+                    out_feature.SetField('area_sqkm', area)
+
+                    lyr_outputs.ogr_layer.CreateFeature(out_feature)
+                    out_feature = None
+
+            # log.info('Creating database schema at {0}'.format(database))
+            qry = open(os.path.join(schema_path, 'gnat_schema.sql'), 'r').read()
+            sqlite3.complete_statement(qry)
+            conn = sqlite3.connect(self.database)
+            conn.execute('PRAGMA foreign_keys = ON;')
+            curs = conn.cursor()
+            curs.executescript(qry)
+
+            load_lookup_data(self.database, schema_path)
+
+        out_layer = os.path.join(self.database, 'riverscapes')
+
+        return out_layer
+
+    def write_gnat_attributes(self, attribute_values: dict, attribute_names: list, set_null_first=False):
+
+        if len(attribute_values) < 1:
+            return
+
+        conn = sqlite3.connect(self.database)
+        conn.execute('pragma foreign_keys=ON')
+        curs = conn.cursor()
+
+        # Optionally clear all the values in the fields first
+        # if set_null_first is True:
+        #     [curs.execute(f'UPDATE {table_name} SET {field} = NULL') for field in fields]
+
+        for attribute in attribute_names:
+
+            sql = f"""SELECT attribute_id, fields.field_name, summary_methods.method_name from attributes
+                    INNER JOIN fields ON attributes.field_id = fields.field_id
+                    INNER JOIN summary_methods ON attributes.method_id = summary_methods.method_id where attribute_name = ?"""
+            attribute_id, fieldname, summary = curs.execute(sql, [attribute]).fetchone()
+
+            sql = f'INSERT INTO riverscape_attributes (riverscape_id, attribute_id, value) VALUES(?,?,?)'
+            curs.executemany(sql, [(reach_id, attribute_id, value[fieldname][summary]) for reach_id, value in attribute_values.items() if fieldname in value.keys()])
+            conn.commit()

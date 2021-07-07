@@ -16,8 +16,9 @@ from rscommons.classes.vector_base import get_utm_zone_epsg
 
 Path = str
 
+default_field_names = {'Length': 'iGeo_Len', 'Gradient': 'iGeo_Slope', 'MinElevation': 'iGeo_ElMin', 'MaxElevation':'IGeo_ElMax'}
 
-def reach_geometry(flow_lines: Path, dem_path: Path, buffer_distance: float):
+def reach_geometry(flow_lines: Path, dem_path: Path, buffer_distance: float, field_names=default_field_names):
     """ Calculate reach geometry BRAT attributes
 
     Args:
@@ -60,7 +61,7 @@ def reach_geometry(flow_lines: Path, dem_path: Path, buffer_distance: float):
             if transform_to_metres is not None:
                 geom.Transform(transform_to_metres)
 
-            reaches[reach_id] = {'iGeo_Len': geom.Length(), 'iGeo_Slope': 0.0, 'iGeo_ElMin': None, 'IGeo_ElMax': None}
+            reaches[reach_id] = {field_names['Length']: geom.Length(), field_names['Gradient']: 0.0, field_names['MinElevation']: None, field_names['MaxElevation']: None}
 
             if transform_to_raster is not None:
                 geom_clone.Transform(transform_to_raster)
@@ -81,15 +82,15 @@ def reach_geometry(flow_lines: Path, dem_path: Path, buffer_distance: float):
             sta_data = line_start_elevations[reach_id]
             end_data = line_end_elevations[reach_id]
 
-            data['iGeo_ElMax'] = _max_ignore_none(sta_data['Maximum'], end_data['Maximum'])
-            data['iGeo_ElMin'] = _min_ignore_none(sta_data['Minimum'], end_data['Minimum'])
+            data[field_names['MaxElevation']] = _max_ignore_none(sta_data['Maximum'], end_data['Maximum'])
+            data[field_names['MinElevation']] = _min_ignore_none(sta_data['Minimum'], end_data['Minimum'])
 
             if sta_data['Mean'] is not None and end_data['Mean'] is not None and sta_data['Mean'] != end_data['Mean']:
-                data['iGeo_Slope'] = abs(sta_data['Mean'] - end_data['Mean']) / data['iGeo_Len']
+                data[field_names['Gradient']] = abs(sta_data['Mean'] - end_data['Mean']) / data[field_names['Length']]
         else:
             log.warning('{:,} features skipped because one or both ends of polyline not on DEM raster'.format(reach_id))
 
-    write_db_attributes(os.path.dirname(flow_lines), reaches, ['iGeo_Len', 'iGeo_ElMax', 'iGeo_ElMin', 'iGeo_Slope'])
+    write_db_attributes(os.path.dirname(flow_lines), reaches, [field_names['Length'], field_names['MaxElevation'], field_names['MinElevation'], field_names['Gradient']])
 
 
 def _max_ignore_none(val1: float, val2: float) -> float:
