@@ -27,6 +27,8 @@ class VectorBaseTest(unittest.TestCase):
     #     safe_remove_dir(self.outdir)
 
     def test_path_sorter(self):
+        """[summary]
+        """
 
         # Exception Cases
         self.assertRaises(VectorBaseException, lambda: VectorBase.path_sorter(None, None))
@@ -52,6 +54,8 @@ class VectorBaseTest(unittest.TestCase):
         print('hi')
 
     def test_ogr2shapely(self):
+        """[summary]
+        """
 
         # test bad objects
         self.assertRaises(VectorBaseException, lambda: GeopackageLayer.ogr2shapely("this is not valid"))
@@ -85,6 +89,8 @@ class VectorBaseTest(unittest.TestCase):
                 self.assertEqual(geom.Length(), shply_obj.length)
 
     def test_shapely2ogr(self):
+        """[summary]
+        """
         linestring = LineString([[0, 0, 0], [0, 1, 2], [1, 2, 3]])
         ogr_obj = GeopackageLayer.shapely2ogr(linestring)
         self.assertTrue(ogr_obj.IsValid())
@@ -93,7 +99,3 @@ class VectorBaseTest(unittest.TestCase):
 
         self.assertTrue(ogr_obj.Length() > 0)
         self.assertEqual(ogr_obj.Length(), linestring.length)
-
-
-if __name__ == '__main__':
-    unittest.main()

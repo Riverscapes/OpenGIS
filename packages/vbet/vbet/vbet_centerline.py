@@ -8,13 +8,12 @@
 #
 # -------------------------------------------------------------------------------
 
-import ogr
-import os
+from osgeo import ogr
 from shapely.geometry import LineString, Polygon, Point
 from shapely.ops import linemerge, split
-from shapely.wkb import loads
+from shapely.wkb import loads as wkbload
 
-from rscommons import GeopackageLayer, ProgressBar, Logger
+from rscommons import GeopackageLayer, Logger
 from rscommons.thiessen.shapes import RiverPoint, densifyShape, GetBufferedBounds, projToShape, splitClockwise
 from rscommons.thiessen.vor import NARVoronoi
 
@@ -22,6 +21,13 @@ from rscommons.thiessen.vor import NARVoronoi
 
 
 def vbet_centerline(flowlines, vbet_polygons, out_layer):
+    """[summary]
+
+    Args:
+        flowlines ([type]): [description]
+        vbet_polygons ([type]): [description]
+        out_layer ([type]): [description]
+    """
     log = Logger('vbet_centerline')
     # fields = ['HydroSeq', 'DnHydroSeq', 'UpHydroSeq']
     # flowlines = os.path.join(os.path.dirname(flowlines), "VAA_Centerlines")
@@ -121,6 +127,19 @@ def vbet_centerline(flowlines, vbet_polygons, out_layer):
 
 
 def build_centerline(thalweg, bounding_polygon, spacing=None, dist_factor=1, existing_centerlines=None, up_reach=None):
+    """[summary]
+
+    Args:
+        thalweg ([type]): [description]
+        bounding_polygon ([type]): [description]
+        spacing ([type], optional): [description]. Defaults to None.
+        dist_factor (int, optional): [description]. Defaults to 1.
+        existing_centerlines ([type], optional): [description]. Defaults to None.
+        up_reach ([type], optional): [description]. Defaults to None.
+
+    Returns:
+        [type]: [description]
+    """
 
     log = Logger('build_centerline')
     log.info('Building centerline')
@@ -129,12 +148,12 @@ def build_centerline(thalweg, bounding_polygon, spacing=None, dist_factor=1, exi
     bounding_polygon.FlattenTo2D()
 
     # load the geoms
-    g_thalweg_load = loads(thalweg.ExportToWkb())
+    g_thalweg_load = wkbload(bytes(thalweg.ExportToWkb()))
     if g_thalweg_load.geometryType() == 'LineString':
         g_thalweg_init = g_thalweg_load
     else:
         g_thalweg_init = linemerge(g_thalweg_load)
-    g_polygon = loads(bounding_polygon.ExportToWkb())
+    g_polygon = wkbload(bytes(bounding_polygon.ExportToWkb()))
 
     buffer = (g_polygon.area / g_thalweg_init.length) * 1.5
 
@@ -206,11 +225,11 @@ def build_centerline(thalweg, bounding_polygon, spacing=None, dist_factor=1, exi
     centerlines_long = [LineString(segment.coords[1:-1] if len(segment.coords) > 3 else segment.coords) for segment in centerline_segments if segment.interpolate(segment.length / 2).within(rivershape)]
 
     if existing_centerlines:
-        g_existing_centerlines = loads(existing_centerlines.ExportToWkb())
+        g_existing_centerlines = wkbload(bytes(existing_centerlines.ExportToWkb()))
         l_existing_centerlines = [g_existing_centerlines] if g_existing_centerlines.type == "LineString" else [g for g in g_existing_centerlines]
 
         up_reach.FlattenTo2D()
-        g_up_reach = loads(up_reach.ExportToWkb())
+        g_up_reach = wkbload(bytes(up_reach.ExportToWkb()))
 
         centerlines = []
 

@@ -6,8 +6,15 @@ from rscommons import util
 
 
 class UtilTest(unittest.TestCase):
+    """[summary]
+
+    Args:
+        unittest ([type]): [description]
+    """
 
     def test_pretty_duration(self):
+        """[summary]
+        """
 
         test1 = util.pretty_duration(0)
         self.assertEqual(test1, '0.0 seconds')
@@ -26,7 +33,3 @@ class UtilTest(unittest.TestCase):
 
         test1 = util.pretty_duration(100000)
         self.assertEqual(test1, '1 days, 3:46 hours')
-
-
-if __name__ == '__main__':
-    unittest.main()

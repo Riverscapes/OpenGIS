@@ -872,7 +872,7 @@ class VectorBase():
         if transform:
             geom.Transform(transform)
 
-        shapely_obj = wkbload(geom.ExportToWkb())
+        shapely_obj = wkbload(bytes(geom.ExportToWkb()))
         return shapely_obj
 
     @staticmethod

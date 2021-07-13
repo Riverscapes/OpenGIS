@@ -11,11 +11,11 @@ import sys
 import json
 import subprocess
 import math
+from functools import reduce
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from copy import copy
-from functools import reduce
 from shapely.wkb import loads as wkbload
 from shapely.ops import unary_union
 from shapely.geometry import shape, mapping, Point, MultiPoint, LineString, MultiLineString, GeometryCollection, Polygon, MultiPolygon
@@ -176,7 +176,7 @@ def get_geometry_union(inpath, epsg, attribute_filter=None):
             continue
 
         new_geom.Transform(transform)
-        new_shape = wkbload(new_geom.ExportToWkb())
+        new_shape = wkbload(bytes(new_geom.ExportToWkb()))
         try:
             geom = geom.union(new_shape) if geom else new_shape
         except Exception as e:
@@ -248,7 +248,7 @@ def get_geometry_unary_union(inpath, epsg):
             log.warning('Zero Area for shape with FID={}'.format(feature.GetFID()))
         else:
             new_geom.Transform(transform)
-            geom_list.append(new_geom.ExportToWkb())
+            geom_list.append(bytes(new_geom.ExportToWkb()))
 
             # IF we get past a certain size then run the union
             if len(geom_list) >= 500:
@@ -274,6 +274,7 @@ def get_geometry_unary_union(inpath, epsg):
     log.debug('Complete')
     data_source = None
     return geom_union
+
 
 def get_geometry_unary_union_from_wkt(inpath, to_sr_wkt):
     """
@@ -334,7 +335,7 @@ def get_geometry_unary_union_from_wkt(inpath, to_sr_wkt):
             log.warning('Zero Area for shape with FID={}'.format(feature.GetFID()))
         else:
             new_geom.Transform(transform)
-            geom_list.append(new_geom.ExportToWkb())
+            geom_list.append(bytes(new_geom.ExportToWkb()))
 
             # IF we get past a certain size then run the union
             if len(geom_list) >= 500:
@@ -360,6 +361,7 @@ def get_geometry_unary_union_from_wkt(inpath, to_sr_wkt):
     log.debug('Complete')
     data_source = None
     return geom_union
+
 
 def get_transform_from_wkt(inSpatialRef, to_sr_wkt):
     log = Logger('get_transform_from_epsg')
@@ -733,7 +735,7 @@ def load_geometries(feature_class, id_field, epsg=None):
         if transform:
             geom.Transform(transform)
 
-        new_geom = wkbload(geom.ExportToWkb())
+        new_geom = wkbload(bytes(geom.ExportToWkb()))
         geo_type = new_geom.GetGeometryType()
 
         if new_geom.is_empty:
@@ -852,7 +854,7 @@ def network_statistics(label, shapefile_path):
             no_geometry += 1
             continue
 
-        shapely_obj = wkbload(geom.ExportToWkb())
+        shapely_obj = wkbload(bytes(geom.ExportToWkb()))
         length = shapely_obj.length
 
         if shapely_obj.is_empty or shapely_obj.is_valid is False:
@@ -979,8 +981,8 @@ def _rough_convert_metres_to_dataset_units(in_spatial_ref, extent, distance):
     pt1_ogr.Transform(transformFwd)
     pt2_ogr.Transform(transformFwd)
 
-    pt1_proj = wkbload(pt1_ogr.ExportToWkb())
-    pt2_proj = wkbload(pt2_ogr.ExportToWkb())
+    pt1_proj = wkbload(bytes(pt1_ogr.ExportToWkb()))
+    pt2_proj = wkbload(bytes(pt2_ogr.ExportToWkb()))
 
     proj_dist = pt1_proj.distance(pt2_proj)
 

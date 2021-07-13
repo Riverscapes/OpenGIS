@@ -2,22 +2,17 @@
 set -eu
 
 # On OSX you must have run `brew install gdal` so that the header files are findable 
-python3 -m virtualenv .venv
+python3 --version
+python3 -m venv .venv
 # Make sure pip is at a good version
 .venv/bin/python -m pip install --upgrade pip
 .venv/bin/pip --timeout=120 install \
-  Cython==0.29.21 \
-  numpy==1.16.3 \
-  shapely==1.7.1 \
-  scipy==1.5.1 \
-  --no-binary shapely
+  Cython==0.29.23 \
+  numpy>=1.21.0 \
+  scipy>=1.5.1
 
 # Need numpy before GDAL
-.venv/bin/pip install \
-  GDAL==$(gdal-config --version) \
-  --global-option=build_ext \
-  --global-option="-I/usr/include/gdal"
-
+.venv/bin/pip install GDAL==$(gdal-config --version)
 
 # Now install everything else
 .venv/bin/pip --timeout=120 install -r requirements.txt

@@ -1,13 +1,9 @@
 import os
-import sys
 import shutil
-from subprocess import run
-import ogr
-from osgeo import gdal, gdal_array
+from osgeo import ogr, gdal, gdal_array
 import rasterio
 import numpy as np
 from rscommons import ProgressBar, Logger, VectorBase, Timer, TempRaster
-from rscommons.hand import run_subprocess
 
 
 def rasterize(in_lyr_path, out_raster_path, template_path, all_touched=False):
@@ -116,8 +112,15 @@ def proximity_raster(src_raster_path: str, out_raster_path: str, dist_units="PIX
 
         dstband = dst_ds.GetRasterBand(1)
 
+        progbar = ProgressBar(100, 50, "ComputeProximity ")
+
+        def poly_progress(progress, _msg, _data):
+            progbar.update(int(progress * 100))
+
         log.info('Creating proximity raster')
-        gdal.ComputeProximity(srcband, dstband, ["VALUES=1", f"DISTUNITS={dist_units}", "COMPRESS=DEFLATE"])
+        progbar.update(0)
+        gdal.ComputeProximity(srcband, dstband, callback=poly_progress, options=["VALUES=1", f"DISTUNITS={dist_units}", "COMPRESS=DEFLATE"])
+        progbar.finish()
 
         srcband = None
         dstband = None
@@ -138,9 +141,9 @@ def proximity_raster(src_raster_path: str, out_raster_path: str, dist_units="PIX
             gdal_array.SaveArray(data.astype("float32"), dist_file, "GTIFF", ds)
             ds = None
 
-            #scrips_dir = next(p for p in sys.path if p.endswith('.venv'))
-            #script = os.path.join(scrips_dir, 'Scripts', 'gdal_calc.py')
-            #run_subprocess(os.path.dirname(tempfile.filepath), ['python', script, '-A', temp_path, f'--outfile={dist_file}', f'--calc=A/{dist_factor}', '--co=COMPRESS=LZW'])
+            # scrips_dir = next(p for p in sys.path if p.endswith('.venv'))
+            # script = os.path.join(scrips_dir, 'Scripts', 'gdal_calc.py')
+            # run_subprocess(os.path.dirname(tempfile.filepath), ['python', script, '-A', temp_path, f'--outfile={dist_file}', f'--calc=A/{dist_factor}', '--co=COMPRESS=LZW'])
             temp_path = dist_file
 
         # Preserve the nodata from the source

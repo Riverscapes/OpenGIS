@@ -18,16 +18,27 @@ datadir = os.path.join(os.path.dirname(__file__), 'data')
 
 
 class VectorOpsTest(unittest.TestCase):
+    """[summary]
+
+    Args:
+        unittest ([type]): [description]
+    """
 
     def setUp(self):
+        """[summary]
+        """
         super(VectorOpsTest, self).setUp()
         self.outdir = mkdtemp()
 
     def tearDown(self):
+        """[summary]
+        """
         super(VectorOpsTest, self).tearDown()
         safe_remove_dir(self.outdir)
 
     def test_copy_feature_class(self):
+        """[summary]
+        """
 
         in_path = os.path.join(datadir, 'WBDHU12.shp')
         out_path = os.path.join(self.outdir, 'WBDHU12_copy.gpkg')
@@ -71,16 +82,19 @@ class VectorOpsTest(unittest.TestCase):
     #     self.assertEqual(len(clip_shapes), numfeats2)
 
     def test_print_geom_size(self):
+        """[summary]
+        """
         in_path = os.path.join(datadir, 'WBDHU12.shp')
 
         with ShapefileLayer(in_path) as in_lyr:
-            log = Logger('TEST')
             for feature, _counter, progbar in in_lyr.iterate_features("GettingSize"):
                 geom = GeopackageLayer.ogr2shapely(feature)
                 progbar.erase()
                 vector_ops.print_geom_size(log, geom)
 
     def test_get_geometry_union(self):
+        """[summary]
+        """
         in_path = os.path.join(datadir, 'WBDHU12.shp')
         # Use this for the clip shape
         clip_path = os.path.join(datadir, 'WBDHU10.shp')
@@ -137,6 +151,8 @@ class VectorOpsTest(unittest.TestCase):
                 self.assertAlmostEqual(clip_shape.area, result_clipped.area, 4)
 
     def test_get_geometry_unary_union(self):
+        """[summary]
+        """
         in_path = os.path.join(datadir, 'WBDHU12.shp')
         # Use this for the clip shape
         clip_path = os.path.join(datadir, 'WBDHU10.shp')
@@ -193,6 +209,8 @@ class VectorOpsTest(unittest.TestCase):
                 self.assertAlmostEqual(clip_shape.area, result_clipped.area, 4)
 
     def test_load_attributes(self):
+        """[summary]
+        """
         in_path = os.path.join(datadir, 'WBDHU10.shp')
 
         values = vector_ops.load_attributes(in_path, 'HUC10', ['GNIS_ID', 'HUC10', 'States', 'AreaSqKm'])
@@ -201,12 +219,10 @@ class VectorOpsTest(unittest.TestCase):
         self.assertEqual(len(values['1706030401']), 4)
 
     def test_load_geometries(self):
+        """[summary]
+        """
         in_path = os.path.join(datadir, 'WBDHU10.shp')
         values = vector_ops.load_geometries(in_path, 'HUC10')
         self.assertEqual(len(values.keys()), 2)
         for shp_obj in values.values():
             self.assertGreater(shp_obj.area, 0)
-
-
-if __name__ == '__main__':
-    unittest.main()
